@@ -27,7 +27,7 @@ class MyLexer(object):
             }
 
     tokens = (
-        'NUMBER','PLUS','MINUS','TIMES','DIVIDE','LPAREN','RPAREN','ID','SEMICOLONS','COMA',
+        'INUM','FNUM','PLUS','MINUS','TIMES','DIVIDE','LPAREN','RPAREN','ID','SEMICOLONS','COMA',
         'RBRACKET','LBRACKET','GREATERTHAN','MINORTHAN','IF','ELSE', 'EQUAL','INT','FLOAT',
         'VAR','PROGRAM','STRING','CHAR','RCURLYBRACKET','LCURLYBRACKET','MAIN', 'WRITE','MODULE','READ',
         'DO' , 'WHILE', 'FOR','TO','RETURN', 'VOID','AND','OR', 'EQUALS'
@@ -44,22 +44,27 @@ class MyLexer(object):
     t_RPAREN  = r'\)'
     t_SEMICOLONS = r'\;'
     t_COMA = r'\,'
-    t_RBRACKET = r'\}'
-    t_LBRACKET = r'\{'
-    t_RCURLYBRACKET = r'\]'
-    t_LCURLYBRACKET = r'\['
+    t_RBRACKET = r'\]'
+    t_LBRACKET = r'\['
+    t_RCURLYBRACKET = r'\}'
+    t_LCURLYBRACKET = r'\{'
     t_GREATERTHAN = r'\>'
     t_MINORTHAN =  r'\<'
     t_EQUAL = r'\='
-    t_EQUALS = r'\=='
+    t_EQUALS = r'\=\='
     t_AND = r'\&'
     t_OR = r'\|'
     t_STRING = r'"([A-Za-z]|[0-9])*"'
 
     
     # A regular expression rule with some action code
-    def t_NUMBER(self, t):
+    def t_INUM(self, t):
         r'[0-9]+'
+        t.value = int(t.value)    
+        return t
+
+    def t_FNUM(self, t):
+        r'[0-9]+(\.[0-9]+)?'
         t.value = int(t.value)    
         return t
 
@@ -88,4 +93,14 @@ class MyLexer(object):
         return lex.lex(module=self, **kwargs)
         
 
+    def printTokens(self,code):
 
+        lexer = self.build()
+        lexer.input(code)
+        while True:
+            
+            tok = lexer.token()
+            if not tok: 
+                break      # No more input
+            print(tok)
+ 

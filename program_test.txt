@@ -1,0 +1,36 @@
+program Ejemplo;
+var
+    int i,j,p;
+    int Arreglo[10];
+    float valor;
+    int Matrix[3][8];
+
+int module fact (int j)
+var int i;
+{i = j + (p - j*2+j);
+if (j == 1) then
+    {return (j);}
+    else
+    {return (j* fact(j-1);)}
+                
+}
+
+void module inicia (int y)
+var int x;
+{ x=0;
+    while( x < 11) do
+    {
+        Arraglo[x] = y * x;
+        x = x + 1;
+    }
+
+}
+
+main ()
+{ 
+    read(p); j = p *2;
+    inicia( p * j -5);
+    for i=9 to 9 do
+    { Arreglo[i] = Arreglo[i] * fact(Arreglo[i] - p); }
+
+}

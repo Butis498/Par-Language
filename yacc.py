@@ -9,14 +9,18 @@ class MyParser(object):
 
     def p_expression_program(self,p):
         '''
-        program : PROGRAM ID SEMICOLONS program1
-        program1 : program2 main 
-        program2 : vars
-                 | functions
-                 | vars functions
-                 | empty
+        program : PROGRAM ID SEMICOLONS declaration main
         '''
         #p[0] = p[1]
+
+    def p_expression_declaration(self,p):
+        '''
+        declaration : declaration1 declaration2
+        declaration1 : vars
+                     | empty
+        declaration2 : functions
+                     | empty
+        '''
     
     def p_expression_vars(self,p):
         '''
@@ -29,13 +33,29 @@ class MyParser(object):
               | empty
         '''
 
-    def p_term_tipo(self,p):
+    def p_expression_functions(self,p):
+        '''
+        functions : functions1 MODULE ID LPAREN functions2 RPAREN functions5 block functions3
+        functions1 : type
+                   | VOID
+        functions2 : type param functions4
+        functions3 : functions
+                   | empty
+        functions4 : COMA functions2
+                   | empty
+        functions5 : vars
+                   | empty
+        '''
+
+    def p_term_type(self,p):
+        
         '''
         type : INT 
              | FLOAT
              | CHAR
         '''
         #p[0] = p[1]
+
 
     def p_factor_block(self,p):
         
@@ -91,9 +111,7 @@ class MyParser(object):
         '''
     def p_asignation_factor(self,p):
         '''
-        asignation : param EQUAL asignation1 SEMICOLONS
-        asignation1 : expression
-                    | call
+        asignation : param EQUAL expression SEMICOLONS
         '''
         #p[0] = p[3]
 
@@ -105,23 +123,12 @@ class MyParser(object):
     def p_expression_var(self,p):
         '''
         var : ID var1
-        var1 : LBRACKET NUMBER RBRACKET var2
-               | empty
-        var2 : LBRACKET NUMBER RBRACKET
-               | empty
+        var1 : LBRACKET INUM RBRACKET var2
+             | empty
+        var2 : LBRACKET INUM RBRACKET
+             | empty
         '''
 
-    def p_expression_functions(self,p):
-        '''
-        functions : functions1 MODULE ID LPAREN functions2 RPAREN vars block functions3
-        functions1 : type
-                   | VOID
-        functions2 : type param functions4
-        functions3 : functions
-                   | empty
-        functions4 : COMA functions2
-                   | empty
-        '''
 
     def p_expression_call(self,p):
         '''
@@ -192,10 +199,26 @@ class MyParser(object):
        # p[0] = p[1]
     def p_factor_factor(self,p):
         '''
-        factor : LPAREN expression RPAREN 
+        factor : factor1
+        factor1 : LPAREN expression RPAREN 
+                | factor2
+        factor2 : factor3 varcte 
+                | varcte
+        factor3 : PLUS 
+                | MINUS 
+        '''
+    
+    def p_expression_varcte(self,p):
+        '''
+        varcte : param
+               | INUM
+               | FNUM
+               | call
         '''
 
     def parse(self,inputString):
+        #r = MyLexer()
+        #r.printTokens(inputString)
         self.parser.parse(input=inputString,lexer=self.lexer,debug=False)
 
     # Error rule for syntax errors
@@ -205,5 +228,4 @@ class MyParser(object):
     def __init__(self):
         self.lexer = MyLexer().build()
         self.parser = yacc.yacc(module=self)
-
 
