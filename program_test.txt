@@ -11,7 +11,7 @@ var int i;
 if (j == 1) then
     {return (j);}
     else
-    {return (j* fact(j-1);)}
+    {return (j* fact(j-1));}
                 
 }
 

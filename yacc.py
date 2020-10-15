@@ -9,18 +9,22 @@ class MyParser(object):
 
     def p_expression_program(self,p):
         '''
-        program : PROGRAM ID SEMICOLONS declaration main
+        program : PROGRAM ID SEMICOLONS program2 main
+        program2 : program4
+                 | program9
+        program4 : VAR program5
+        program5 : type program6
+        program6 : var program7
+        program7 : COMA program6
+                 | SEMICOLONS program8
+        program8 : program5
+                 | program9
+        program9 : functions
+                 | empty
         '''
         #p[0] = p[1]
 
-    def p_expression_declaration(self,p):
-        '''
-        declaration : declaration1 declaration2
-        declaration1 : vars
-                     | empty
-        declaration2 : functions
-                     | empty
-        '''
+
     
     def p_expression_vars(self,p):
         '''
@@ -73,7 +77,7 @@ class MyParser(object):
                  | writing
                  | repetitionstatute
                  | return
-                 | call
+                 | call SEMICOLONS
                  | read
         '''
        # p[0] = p[1]
@@ -81,7 +85,7 @@ class MyParser(object):
     
     def p_expression_condition(self,p):
         '''
-        condition : IF LPAREN expression RPAREN block condition1 SEMICOLONS
+        condition : IF LPAREN expression RPAREN THEN block condition1
         condition1 : empty 
                    | ELSE block
         '''
@@ -117,7 +121,7 @@ class MyParser(object):
 
     def p_asignation_return(self,p):
         '''
-        return : RETURN LPAREN expression RPAREN
+        return : RETURN LPAREN expression RPAREN SEMICOLONS
         '''
 
     def p_expression_var(self,p):
@@ -132,7 +136,7 @@ class MyParser(object):
 
     def p_expression_call(self,p):
         '''
-        call : ID LPAREN call1 RPAREN SEMICOLONS
+        call : ID LPAREN call1 RPAREN 
         call1 : expression call2
         call2 : COMA call1
               | empty
