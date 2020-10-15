@@ -2,7 +2,7 @@ from yacc import MyParser
 
 if __name__ == "__main__":
     
-    with open('program_test2.txt',encoding='utf8') as file:
+    with open('program_test.txt',encoding='utf8') as file:
         test_code = file.read()
         print(test_code)
         parser = MyParser()
