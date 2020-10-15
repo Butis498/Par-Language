@@ -23,14 +23,15 @@ class MyLexer(object):
             'while' : 'WHILE',
             'for' : 'FOR',
             'to' : 'TO',
-            'return' : 'RETURN'
+            'return' : 'RETURN',
+            'then' : 'THEN'
             }
 
     tokens = (
         'INUM','FNUM','PLUS','MINUS','TIMES','DIVIDE','LPAREN','RPAREN','ID','SEMICOLONS','COMA',
         'RBRACKET','LBRACKET','GREATERTHAN','MINORTHAN','IF','ELSE', 'EQUAL','INT','FLOAT',
         'VAR','PROGRAM','STRING','CHAR','RCURLYBRACKET','LCURLYBRACKET','MAIN', 'WRITE','MODULE','READ',
-        'DO' , 'WHILE', 'FOR','TO','RETURN', 'VOID','AND','OR', 'EQUALS'
+        'DO' , 'WHILE', 'FOR','TO','RETURN', 'VOID','AND','OR', 'EQUALS','THEN'
     ) 
 
         
