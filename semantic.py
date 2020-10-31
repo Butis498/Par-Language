@@ -134,6 +134,7 @@ class Semantic():
         self.variables_table = {}
         self.functions_table = {}
         self.jumps_stack = []
+        self.quadruples = []
         
         self.variables_base_memory = {
 
@@ -192,3 +193,10 @@ class Semantic():
             raise KeyError("Function " + str(function_name) +" not declared")
 
 
+    def insert_quadruple(self,operation,operand_1=None,operand_2=None,save_loc=None):
+
+        operand1_mem = self.variables_table[operand_1].memory_addr
+        operand2_mem = self.variables_table[operand_2].memory_addr
+        save_loc_mem = self.variables_table[save_loc].memory_addr
+        quadruple = {'operation': operation,'operand_1':operand1_mem, 'operand_2':operand2_mem,'save_loc':save_loc_mem}
+        self.quadruples.insert(quadruple)
