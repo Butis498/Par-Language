@@ -1,202 +1,215 @@
+from semantic_cube import semantic_cube
+import copy
+
 
 class Semantic():
     def __init__(self):
 
-        self.semantic_cube = {
-            'int': {
-                '+': {
-                    'int': 'int',
-                    'float': 'float'
-                },
-                '-': {
-                    'int': 'int',
-                    'float': 'float'
-                },
-                '=': {
-                    'int': 'int',
-                    'float': 'int'
-                },
-                '*': {
-                    'int': 'int',
-                    'float': 'float'
-                },
-                '/': {
-                    'int': 'int',
-                    'float': 'float'
-                },
-    
-                '<': {
-                    'int': 'bool',
-                    'float': 'bool'
-                },
-                '>': {
-                    'int': 'bool',
-                    'float': 'bool'
-                },
-                '<=': {
-                    'int': 'bool',
-                    'float': 'bool'
-                },
-                '>=': {
-                    'int': 'bool',
-                    'float': 'bool'
-                },
-                '==': {
-                    'int': 'bool',
-                    'float': 'bool'
-                },
-                '!=': {
-                    'int': 'bool',
-                    'float': 'bool'
-                }
-            },
-
-            'float': {
-                '+': {
-                    'int': 'float',
-                    'float': 'float'
-                },
-                '-': {
-                    'int': 'float',
-                    'float': 'float'
-                },
-                '=': {
-                    'int': 'float',
-                    'float': 'float'
-                },
-                '*': {
-                    'int': 'float',
-                    'float': 'float'
-                },
-                '/': {
-                    'int': 'float',
-                    'float': 'float'
-                },
-                
-                '<': {
-                    'int': 'bool',
-                    'float': 'bool'
-                },
-                '>': {
-                    'int': 'bool',
-                    'float': 'bool'
-                },
-                '<=': {
-                    'int': 'bool',
-                    'float': 'bool'
-                },
-                '>=': {
-                    'int': 'bool',
-                    'float': 'bool'
-                },
-                '==': {
-                    'int': 'bool',
-                    'float': 'bool'
-                },
-                '!=': {
-                    'int': 'bool',
-                    'float': 'bool'
-                }
-            },
-
-            'bool': {
-                '=': {
-                    'bool': 'bool'
-                },
-                '==': {
-                    'bool': 'bool'
-                },
-                '!=': {
-                    'bool': 'bool'
-                },
-                '&': {
-                    'bool': 'bool'
-                },
-                '|': {
-                    'bool': 'bool'
-                }
-            },
-
-            'char': {
-                '=': {
-                    'char': 'char'
-                },
-                '==': {
-                    'char': 'bool'
-                },
-                '!=': {
-                    'char': 'bool'
-                }
-            }
-        }
         self.MEMORY_SPACE = 1000
         self.next_memory_block = self.MEMORY_SPACE
         self.variables_table = {}
         self.functions_table = {}
         self.jumps_stack = []
         self.quadruples = []
-        
+        self.last_temp = {}
+        self.temp_count = 0
+
         self.variables_base_memory = {
 
-            'global':{'int':self.asign_memory_base(),
-                    'float':self.asign_memory_base(),
-                    'char':self.asign_memory_base()},
+            'global': {'int': self.asign_memory_base(),
+                       'float': self.asign_memory_base(),
+                       'char': self.asign_memory_base(),
+                       'bool': self.asign_memory_base()},
 
-            'local':{'int':self.asign_memory_base(),
-                    'float':self.asign_memory_base(),
-                    'char':self.asign_memory_base()},
+            'local': {'int': self.asign_memory_base(),
+                      'float': self.asign_memory_base(),
+                      'char': self.asign_memory_base(),
+                      'bool': self.asign_memory_base()},
 
-            'temp':{'int':self.asign_memory_base(),
-                    'float':self.asign_memory_base(),
-                    'char':self.asign_memory_base()},
+            'temp': {'int': self.asign_memory_base(),
+                     'float': self.asign_memory_base(),
+                     'char': self.asign_memory_base(),
+                     'bool': self.asign_memory_base()},
 
-            'const':{'int':self.asign_memory_base(),
-                    'float':self.asign_memory_base(),
-                    'char':self.asign_memory_base()}
-            }
+            'const': {'int': self.asign_memory_base(),
+                      'float': self.asign_memory_base(),
+                      'char': self.asign_memory_base(),
+                      'bool': self.asign_memory_base()}
+        }
+        self.memory_count = copy.deepcopy(self.variables_base_memory)
 
     def asign_memory_base(self):
 
         self.next_memory_block += self.MEMORY_SPACE
         return self.next_memory_block
 
-    def remove_variable(self,variable_name):
+    def reset_memory(self, memory_type):
 
-        if variable_name not in self.variables_table.keys():
-            raise KeyError("Variable "+ variable_name  +" already exists")
-        
-        del self.variables_table[variable_name]
+        try:
+            self.memory_count[memory_type] = self.variables_base_memory[memory_type]
+            base,top = self.get_range(memory_type)
+            for var,addr in list(self.variables_table.keys()):
+                if base <= addr <= top:
+                    del self.variables_table[(var,addr)]
 
-    def insert_variable(self,variable_name,variable_type,socope):
+        except KeyError as err:
 
-        if variable_name in self.variables_table.keys():
+            print('No memory type found, ' + str(err))
 
-            raise KeyError("Variable "+ variable_name  +" already exists")
-        
-        variable = {variable_name:{'type': variable_type,'memory_addr':self.variables_base_memory[socope][variable_type]}}
-        self.variables_table.update(variable)
-        self.variables_base_memory[socope][variable_type] += 1
+    def insert_variable(self, variable_name, variable_type, scope):
 
-    def insert_function(self,function_name,function_type):
+        try:
+
+            new_variable = (variable_name, self.memory_count[scope][variable_type])
+            base ,top = self.get_range(scope)
+
+            for var,addr in list(self.variables_table.keys()):
+                if base <= addr <= top and var == variable_name:
+                    raise KeyError('Variable ' + var + ' already exists')
+
+            variable = {new_variable: {'type': variable_type}}
+            self.variables_table.update(variable)
+
+            if self.memory_count[scope][variable_type] >= top:
+                raise MemoryError('Out of memory variables')
+
+            self.memory_count[scope][variable_type] += 1
+
+        except KeyError as err:
+
+            raise KeyError('Can not insert variable, ' + str(err))
+
+
+
+    def insert_function(self, function_name, function_type):
 
         if function_name in self.functions_table.keys():
 
-            raise KeyError("Function "+ function_name +" already exists")
-        
-        function = {function_name:{'type': function_type}}
-        self.functions_table.update(function) 
+            raise KeyError("Function " + function_name + " already exists")
 
-    def function_call(self,function_name):
+        try:
+            function = {function_name: {'type': function_type}}
+            self.functions_table.update(function)
+        except KeyError as err:
+
+            print('Can not declare function, ' + str(err))
+
+    def function_call(self, function_name):
 
         if function_name not in self.functions_table.keys():
 
-            raise KeyError("Function " + str(function_name) +" not declared")
+            raise KeyError("Function " + str(function_name) + " not declared")
+
+    def insert_quadruple_operation(self, operation, operand_1=None, operand_2=None, save_loc=None):
+
+        if operand_2 == None:
+            try:
+                operand_2 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
+                operand_2_addr = list(self.last_temp.keys())[0][1]
+            except:
+                raise ValueError('No last tmep value')
+
+        
+
+        operand_1_addr = self.get_var_addr(operand_1)
+        operand_2_addr = self.get_var_addr(operand_2)
+            
+        
+        if save_loc == None:
+
+            #operand_1_scope = self.get_var_scope((operand_1,operand_1_addr))
+            #operand_2_scope = self.get_var_scope((operand_2,operand_2_addr))
+            save_loc = 'temp'+str(self.temp_count)
+            temp_type = self.get_var_type(operation,(operand_1,operand_1_addr),(operand_2,operand_2_addr))
+            self.insert_variable(save_loc,temp_type,'temp')
+            new_var = (save_loc , self.memory_count['temp'][temp_type])
+            newTemp = {new_var:{'type':temp_type}}
+            self.last_temp = newTemp
+            self.temp_count += 1
+   
+        save_loc_addr = self.get_var_addr(save_loc)
+
+        try:
+            operand1_mem = operand_1_addr
+            operand2_mem = operand_2_addr
+            save_loc_mem = save_loc_addr
+            quadruple = {'operation': operation, 'operand_1': operand1_mem,
+                         'operand_2': operand2_mem, 'save_loc': save_loc_mem}
+            self.quadruples.append(quadruple)
+        except KeyError as err:
+            raise KeyError('Var  does not exists in table, ' + str(err))
+
+        print(quadruple)
 
 
-    def insert_quadruple(self,operation,operand_1=None,operand_2=None,save_loc=None):
 
-        operand1_mem = self.variables_table[operand_1].memory_addr
-        operand2_mem = self.variables_table[operand_2].memory_addr
-        save_loc_mem = self.variables_table[save_loc].memory_addr
-        quadruple = {'operation': operation,'operand_1':operand1_mem, 'operand_2':operand2_mem,'save_loc':save_loc_mem}
-        self.quadruples.insert(quadruple)
+    def get_var_type(self,operation, var1,var2):
+        try:
+            type_1 = self.variables_table[var1]['type']
+            type_2 = self.variables_table[var2]['type']
+        except KeyError as err:
+            raise KeyError(str(err) + ' does not exists')
+
+        try:
+            type_res_var = semantic_cube[type_1][operation][type_2]
+            return type_res_var
+        except KeyError :
+            raise TypeError('Not supported type for operands '+ var1[0] + ' and ' + var2[0])
+
+    def get_range(self,scope):
+        base = list(self.variables_base_memory[scope].values())[0]
+        top = base + self.MEMORY_SPACE * len(self.variables_base_memory[scope]) -1
+        return base,top
+
+
+    def get_var_scope(self,var:tuple):
+
+        try:
+            if var in self.variables_table.keys():
+                for scope in self.variables_base_memory.keys():
+                    base,top = self.get_range(scope)
+                    if base <= var[1] <= top:
+                        return scope
+
+        except KeyError:
+            raise ValueError('Cant get var scope '+ str(var[0]))
+
+
+    def get_var_addr(self,var_name):
+
+        for var,addr in self.variables_table.keys():
+                if var == var_name:
+                    return addr
+
+    def end_expression(self):
+
+        self.temp_count = 0
+        self.reset_memory('temp')
+
+    def end_function(self):
+
+        self.temp_count = 0
+        self.reset_memory('temp')
+        self.reset_memory('local')
+                
+                
+"""
+
+s = Semantic()
+
+s.insert_variable('i','int','global')
+s.insert_variable('j','int','global')
+s.insert_variable('k','int','local')
+
+print(s.variables_table)
+
+s.insert_quadruple_operation('+','i','j')
+print(s.variables_table)
+s.insert_quadruple_operation('-','k')
+print(s.variables_table)
+s.insert_quadruple_operation('+','i')
+s.end_function()
+print(s.variables_table)
+
+print(s.quadruples)
+"""
