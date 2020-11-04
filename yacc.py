@@ -9,33 +9,22 @@ class MyParser(object):
 
     def p_expression_program(self,p):
         '''
-        program : PROGRAM ID SEMICOLONS program2 main
-        program2 : program4
-                 | program9
-        program4 : VAR program5
-        program7 : COMA program6
-                 | SEMICOLONS program8
-        program8 : program5
-                 | program9
-        program9 : functions
+        program : PROGRAM ID SEMICOLONS program2 program3 main
+        '''
+
+    def p_expression_program2(self,p):
+        '''
+        program2 : vars
+                 | empty
+        '''
+        self.current_scope = 'local'
+
+    def p_expression_program3(self,p):
+        '''
+        program3 : functions
                  | empty
         '''
 
-
-    def p_expression_program5(self,p):
-        '''
-        program5 : type program6
-        '''
-        for var in self.variables_stack:
-            self.semantic.insert_variable(var,p[1],'global')
-
-
-    def p_expression_program6(self,p):
-        '''
-        program6 : var program7
-        '''
-        self.variables_stack.append(p[1])
-    
     def p_expression_vars(self,p):
         '''
         vars : VAR vars1
@@ -50,7 +39,8 @@ class MyParser(object):
         vars1 : type vars2
         '''
         for var in self.variables_stack:
-            self.semantic.insert_variable(var,p[1],'global')
+            self.semantic.insert_variable(var,p[1],self.current_scope)
+        self.variables_stack.clear()
 
     def p_expression_vars2(self,p):
         '''
@@ -60,7 +50,12 @@ class MyParser(object):
 
     def p_expression_functions(self,p):
         '''
-        functions : functions1 MODULE ID LPAREN functions2 RPAREN functions5 block functions3
+        functions : functions1 MODULE ID LPAREN functions2 RPAREN functions5 block erase_mem functions3
+        '''
+        
+
+    def p_expression_functions1(self,p):
+        '''
         functions1 : type
                    | VOID
         functions2 : type param functions4
@@ -70,9 +65,16 @@ class MyParser(object):
                    | empty
         functions5 : vars
                    | empty
+
         '''
 
     
+        
+    def p_expression_erase_mem(self,p):
+        '''
+        erase_mem : empty
+        '''
+        self.semantic.reset_memory('temp')
 
     def p_term_type(self,p):
         
@@ -86,7 +88,7 @@ class MyParser(object):
     def p_factor_block(self,p):
         
         '''
-        block : LCURLYBRACKET block1 RCURLYBRACKET
+        block : LCURLYBRACKET block1 RCURLYBRACKET 
         block1 : statute block1
                 | empty
         '''
@@ -190,6 +192,7 @@ class MyParser(object):
         '''
         main : MAIN LPAREN RPAREN block
         '''
+        self.semantic.reset_memory('temp')
 
     def p_expression_param(self,p):
         '''
@@ -212,9 +215,11 @@ class MyParser(object):
         '''
         if p[2] == None:
             p[0] = p[1]
+            
         else:
             self.semantic.insert_quadruple_operation(p[2],p[1],p[3])
-        self.semantic.end_expression()
+        
+        
 
     def p_expression_expression1(self,p):
         '''
@@ -321,6 +326,7 @@ class MyParser(object):
         self.parser = yacc.yacc(module=self)
         self.semantic = Semantic()
         self.current_type =''
+        self.current_scope = 'global'
         self.variables_stack  = []
 
 

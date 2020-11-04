@@ -5,7 +5,7 @@ var
     float valor;
     int Matrix[3][8];
 
-int module fact (int j)
+void module fact (int j)
 var int i;
 {i = j + (p - j*2+j);
 if (j == 1) then
@@ -20,7 +20,7 @@ var int x;
 { x=0;
     while( x < 11) do
     {
-        Arraglo[x] = y * x;
+        Arraglo[x] = i * x;
         x = x + 1;
     }
 

@@ -13,6 +13,7 @@ class Semantic():
         self.quadruples = []
         self.last_temp = {}
         self.temp_count = 0
+        self.const_var_count = 0
 
         self.variables_base_memory = {
 
@@ -45,8 +46,9 @@ class Semantic():
 
     def reset_memory(self, memory_type):
 
+
         try:
-            self.memory_count[memory_type] = self.variables_base_memory[memory_type]
+            self.memory_count[memory_type] = copy.deepcopy(self.variables_base_memory[memory_type])
             base,top = self.get_range(memory_type)
             for var,addr in list(self.variables_table.keys()):
                 if base <= addr <= top:
@@ -59,7 +61,6 @@ class Semantic():
     def insert_variable(self, variable_name, variable_type, scope):
 
         try:
-
             new_variable = (variable_name, self.memory_count[scope][variable_type])
             base ,top = self.get_range(scope)
 
@@ -102,6 +103,14 @@ class Semantic():
 
     def insert_quadruple_operation(self, operation, operand_1=None, operand_2=None, save_loc=None):
 
+        print(operation,operand_1,operand_2,save_loc)
+        if operand_1 == None:
+            try:
+                operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
+                operand_1_addr = list(self.last_temp.keys())[0][1]
+            except:
+                raise ValueError('No last tmep value')
+
         if operand_2 == None:
             try:
                 operand_2 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
@@ -109,7 +118,24 @@ class Semantic():
             except:
                 raise ValueError('No last tmep value')
 
-        
+        try:
+            if self.get_value_type(operand_1) != 'var':
+                
+                type_1 = self.get_value_type(operand_1)
+                operand_1 = 'const'+str(self.const_var_count)
+                self.insert_variable(operand_1,type_1,'const')
+                self.const_var_count += 1
+
+            if self.get_value_type(operand_2) != 'var':
+                
+                type_2 = self.get_value_type(operand_2)
+                operand_2 = 'const'+str(self.const_var_count)
+                self.insert_variable(operand_2,type_2,'const')
+                self.const_var_count += 1
+
+        except TypeError as err:
+
+            raise TypeError(str(err))
 
         operand_1_addr = self.get_var_addr(operand_1)
         operand_2_addr = self.get_var_addr(operand_2)
@@ -191,25 +217,24 @@ class Semantic():
         self.temp_count = 0
         self.reset_memory('temp')
         self.reset_memory('local')
+
+    def get_value_type(self,var):
+
+        if type(var) == int:
+            return 'int'
+        elif type(var) == float:
+            return 'float'
+        elif type(var) == str and var[0] == '"' and var[-1] == '"' and len(var) == 3:
+            return 'char'
+        elif type(var) == bool:
+            return 'bool'
+        elif type(var) == str:
+            return 'var'
+        else:
+            raise TypeError(f'No type recognized for "{var}"')
+            
+
+
+
                 
                 
-"""
-
-s = Semantic()
-
-s.insert_variable('i','int','global')
-s.insert_variable('j','int','global')
-s.insert_variable('k','int','local')
-
-print(s.variables_table)
-
-s.insert_quadruple_operation('+','i','j')
-print(s.variables_table)
-s.insert_quadruple_operation('-','k')
-print(s.variables_table)
-s.insert_quadruple_operation('+','i')
-s.end_function()
-print(s.variables_table)
-
-print(s.quadruples)
-"""
