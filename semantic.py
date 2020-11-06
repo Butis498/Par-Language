@@ -14,6 +14,7 @@ class Semantic():
         self.last_temp = {}
         self.temp_count = 0
         self.const_var_count = 0
+        self.goto_quadruples_stack = []
 
         self.variables_base_memory = {
 
@@ -109,14 +110,14 @@ class Semantic():
                 operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
                 operand_1_addr = list(self.last_temp.keys())[0][1]
             except:
-                raise ValueError('No last tmep value')
+                raise ValueError('No last temp value')
 
         if operand_2 == None:
             try:
                 operand_2 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
                 operand_2_addr = list(self.last_temp.keys())[0][1]
             except:
-                raise ValueError('No last tmep value')
+                raise ValueError('No last temp value')
 
         try:
             if self.get_value_type(operand_1) != 'var':
@@ -137,8 +138,8 @@ class Semantic():
 
             raise TypeError(str(err))
 
-        operand_1_addr = self.get_var_addr(operand_1)
-        operand_2_addr = self.get_var_addr(operand_2)
+        operand_1_addr = self.get_result_type(operand_1)
+        operand_2_addr = self.get_result_type(operand_2)
             
         
         if save_loc == None:
@@ -148,12 +149,12 @@ class Semantic():
             save_loc = 'temp'+str(self.temp_count)
             temp_type = self.get_var_type(operation,(operand_1,operand_1_addr),(operand_2,operand_2_addr))
             self.insert_variable(save_loc,temp_type,'temp')
-            new_var = (save_loc , self.memory_count['temp'][temp_type])
+            new_var = (save_loc , self.memory_count['temp'][temp_type]-1)#the variable count has increase so take one from the memory count
             newTemp = {new_var:{'type':temp_type}}
             self.last_temp = newTemp
             self.temp_count += 1
    
-        save_loc_addr = self.get_var_addr(save_loc)
+        save_loc_addr = self.get_result_type(save_loc)
 
         try:
             operand1_mem = operand_1_addr
@@ -201,11 +202,28 @@ class Semantic():
             raise ValueError('Cant get var scope '+ str(var[0]))
 
 
-    def get_var_addr(self,var_name):
+    def get_result_type(self,var_name):
+
+        base_local,top_local = self.get_range('local')
+        base_global,top_global = self.get_range('global')
 
         for var,addr in self.variables_table.keys():
-                if var == var_name:
-                    return addr
+
+            if var == var_name and base_local <= addr <=top_local:
+                return addr
+
+        for var,addr in self.variables_table.keys():
+            
+            if var == var_name and base_global <= addr <=top_global:
+                return addr
+
+        for var,addr in self.variables_table.keys():
+            
+            if var == var_name:
+                return addr
+        
+        raise KeyError(f"No variable '{var_name}' found on scope")
+                
 
     def end_expression(self):
 
@@ -226,15 +244,117 @@ class Semantic():
             return 'float'
         elif type(var) == str and var[0] == '"' and var[-1] == '"' and len(var) == 3:
             return 'char'
-        elif type(var) == bool:
-            return 'bool'
         elif type(var) == str:
+            if var == 'True' or var == 'False':
+                return 'bool'
+
             return 'var'
         else:
             raise TypeError(f'No type recognized for "{var}"')
+
+    def insert_quadruple_action(self,action,operand_1=None):
+
+        if type(action) == str:
+            if operand_1 == None:
+                try:
+                    operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
+                    operand_1_addr = list(self.last_temp.keys())[0][1]
+
+                except:
+                    raise ValueError('No last tmep value for action type ')
+            else:
+
+                operand_1_addr = self.get_result_type(operand_1)
+
+            quadruple = {'operation': action, 'operand_1': operand_1_addr,
+                            'operand_2': None, 'save_loc': None}
+
+            print(quadruple)
+            self.quadruples.append(quadruple)
+    
+    def insert_quadruple_asignation(self,save_loc,operand_1=None):
+        
+        print('=',operand_1,save_loc)
+        if operand_1 == None:
+            try:
+                operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
+                operand_1_addr = list(self.last_temp.keys())[0][1]
+            except:
+                raise ValueError('No last tmep value')
+        
+        try:
+            if self.get_value_type(operand_1) != 'var':
+                
+                type_1 = self.get_value_type(operand_1)
+                operand_1 = 'const'+str(self.const_var_count)
+                self.insert_variable(operand_1,type_1,'const')
+                self.const_var_count += 1
+
+
+        except TypeError as err:
+
+            raise TypeError(str(err))
+
+        operand_1_addr = self.get_result_type(operand_1)
+        save_loc_addr = self.get_result_type(save_loc)
+
+        validation_type_1 = self.variables_table[(operand_1,operand_1_addr)]['type']
+        validation_type_2 = self.variables_table[(save_loc,save_loc_addr)]['type']
+
+        if validation_type_1 != validation_type_2:
+            raise TypeError(f'Incompatible Types {validation_type_1} and {validation_type_2}')
+
+        quadruple = {'operation': '=', 'operand_1': operand_1_addr,
+                        'operand_2': None, 'save_loc': save_loc_addr}
+
+        print(quadruple)
+        self.quadruples.append(quadruple)
+
+
+    def insert_quadruple_goto(self,quadruple_num=None,operand_1=None,goto_type=None):
+
+        if operand_1 == None:
+            try:
+                operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
+                operand_1_addr = list(self.last_temp.keys())[0][1]
+            except:
+                raise ValueError('No last temp value')
+        
+        operand_1_addr = self.get_result_type(operand_1)
+    
+        print(self.get_variable_type(operand_1))
+        if self.get_variable_type(operand_1) != 'bool':
+            raise TypeError('Not bool variable')
             
 
+        goto = 'goto'
+        if goto_type == True:
+            goto = 'gotot'
+        elif goto_type == False:
+            goto = 'gotof'
+        elif goto_type == None:
+            operand_1 = None
+            operand_1_addr = None
 
+        
+        quadruple = {'operation':goto,'operand_1':operand_1_addr,'operand_2':'','save_loc':None}
+        print(quadruple) 
+        self.quadruples.append(quadruple)
+        self.goto_quadruples_stack.append(self.quadruples[-1])
+
+
+    def get_variable_type(self, var):
+
+        addr = self.get_result_type(var)
+
+        for scope in self.variables_base_memory.keys():
+            for type_var in self.variables_base_memory[scope].keys():
+                base = self.variables_base_memory[scope][type_var]
+                top = base + self.MEMORY_SPACE -1
+                if base <= addr <= top:
+                    return type_var
+
+        
 
                 
                 

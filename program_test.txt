@@ -6,12 +6,22 @@ var
     int Matrix[3][8];
 
 void module fact (int j)
-var int i;
+var int i,j;
+    char k;
+    bool o;
 {i = j + (p - j*2+j);
+read(i);
+o = True;
+write(j+1);
+write(j+1,i);
 if (j == 1) then
-    {return (j);}
+    {
+        if ( 3 +2 == 5) then{ return(i);}
+        read(i);
+        return (j);}
     else
-    {return (j* fact(j-1));}
+    {   write(i,j);
+        return (j* fact(j-1));}
                 
 }
 
@@ -20,7 +30,7 @@ var int x;
 { x=0;
     while( x < 11) do
     {
-        Arraglo[x] = i * x;
+        Arreglo[x] = i * x;
         x = x + 1;
     }
 

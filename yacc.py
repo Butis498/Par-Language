@@ -11,6 +11,7 @@ class MyParser(object):
         '''
         program : PROGRAM ID SEMICOLONS program2 program3 main
         '''
+        
 
     def p_expression_program2(self,p):
         '''
@@ -82,6 +83,7 @@ class MyParser(object):
         type : INT 
              | FLOAT
              | CHAR
+             | BOOL
         '''
         p[0] = p[1]
 
@@ -104,33 +106,85 @@ class MyParser(object):
                  | call SEMICOLONS
                  | read
         '''
+        
        # p[0] = p[1]
 
     
     def p_expression_condition(self,p):
         '''
-        condition : IF LPAREN expression RPAREN THEN block condition1
-        condition1 : empty 
-                   | ELSE block
+        condition : IF condition2 THEN block condition1 
         '''
+        self.semantic.quadruples[self.semantic.jumps_stack[-1]]['operand_2'] = len(self.semantic.quadruples)
+        self.semantic.jumps_stack.pop(-1)
+
+    def p_expression_condition2(self,p):
+        '''
+        condition2 : LPAREN expression RPAREN
+        '''
+        self.semantic.insert_quadruple_goto(None,p[2],False)
+        self.semantic.jumps_stack.append(len(self.semantic.quadruples)-1)
+
+
+    def p_expression_condition1(self,p):
+        '''
+        condition1 : empty 
+                   | ELSE else_detect block 
+        '''
+
+    def p_expression_else_detect(self,p):
+        '''
+        else_detect : empty  
+        '''
+        salto = self.semantic.jumps_stack[-1]
+        self.semantic.jumps_stack.pop(-1)
+        self.semantic.insert_quadruple_goto(None)
+        self.semantic.jumps_stack.append(len(self.semantic.quadruples)-1)
+        self.semantic.quadruples[salto]['operand_2'] = len(self.semantic.quadruples)
+
+
 
     def p_expression_writing(self,p):
         '''
         writing : WRITE LPAREN  writing1 RPAREN SEMICOLONS
+        '''
+
+        
+
+    def p_expression_writing1(self,p):
+        '''
         writing1 : writing2 writing3
-        writing2 : expression
-                 | STRING
         writing3 : COMA writing1
                  | empty
         '''
+
+    def p_expression_writing2(self,p):
+        '''
+        writing2 : expression
+                 | STRING
+        '''
+        self.semantic.insert_quadruple_action('write',p[1])
     
     def p_expression_read(self,p):
         '''
         read : READ LPAREN read1 RPAREN SEMICOLONS
+        '''
+
+    
+
+    def p_expression_read1(self,p):
+        '''
         read1 : param read2
+        '''
+        self.semantic.insert_quadruple_action('read',p[1])
+
+
+    def p_expression_read2(self,p):
+        
+        '''
         read2 : COMA read1
               | empty
         '''
+
     def p_expression_repetitionstatute(self,p):
         '''
         repetitionstatute : repetitionstatute1 DO block
@@ -141,12 +195,21 @@ class MyParser(object):
         '''
         asignation : param EQUAL expression SEMICOLONS
         '''
-        
+        self.semantic.insert_quadruple_asignation(p[1],p[3])
 
     def p_asignation_return(self,p):
         '''
-        return : RETURN LPAREN expression RPAREN SEMICOLONS
+        return : RETURN  LPAREN expression detect_asignation RPAREN SEMICOLONS
         '''
+        print('return',p[3])
+        self.semantic.insert_quadruple_action(p[1],p[3])
+        
+
+    def p_asignation_detect_asignation(self,p):
+        '''
+        detect_asignation : empty
+        '''
+        
 
     def p_expression_var(self,p):
         '''
@@ -308,6 +371,9 @@ class MyParser(object):
         varcte : param
                | INUM
                | FNUM
+               | TRUE
+               | FALSE
+               | CCHAR
                | call
         '''
         p[0] = p[1]
