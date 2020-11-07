@@ -11,7 +11,7 @@ class MyParser(object):
         '''
         program : PROGRAM ID SEMICOLONS program2 program3 main
         '''
-        
+        self.semantic.print_quadruples()
 
     def p_expression_program2(self,p):
         '''
@@ -114,7 +114,7 @@ class MyParser(object):
         '''
         condition : IF condition2 THEN block condition1 
         '''
-        self.semantic.quadruples[self.semantic.jumps_stack[-1]]['operand_2'] = len(self.semantic.quadruples)
+        self.semantic.quadruples[self.semantic.jumps_stack[-1]]['save_loc'] = len(self.semantic.quadruples)
         self.semantic.jumps_stack.pop(-1)
 
     def p_expression_condition2(self,p):
@@ -139,7 +139,7 @@ class MyParser(object):
         self.semantic.jumps_stack.pop(-1)
         self.semantic.insert_quadruple_goto(None)
         self.semantic.jumps_stack.append(len(self.semantic.quadruples)-1)
-        self.semantic.quadruples[salto]['operand_2'] = len(self.semantic.quadruples)
+        self.semantic.quadruples[salto]['save_loc'] = len(self.semantic.quadruples)
 
 
 
@@ -188,9 +188,40 @@ class MyParser(object):
     def p_expression_repetitionstatute(self,p):
         '''
         repetitionstatute : repetitionstatute1 DO block
-        repetitionstatute1 : FOR param EQUAL expression TO expression
-                           | WHILE LPAREN expression RPAREN
         '''
+        
+        falso = self.semantic.jumps_stack[-1]
+        self.semantic.jumps_stack.pop(-1)
+        ret = self.semantic.jumps_stack[-1]
+        self.semantic.jumps_stack.pop(-1)
+        self.semantic.insert_quadruple_goto(quadruple_num=ret)
+        self.semantic.quadruples[falso]['save_loc'] = len(self.semantic.quadruples)
+
+
+
+
+    def p_expression_repetitionstatute1(self,p):
+        '''
+        repetitionstatute1 : FOR param EQUAL expression TO expression
+                           |  WHILE while_start while_end
+        '''
+
+
+    def p_expression_while_end(self,p):
+        '''
+        while_end : LPAREN expression RPAREN
+        '''
+        self.semantic.insert_quadruple_goto(None,p[2],False)
+        self.semantic.jumps_stack.append(len(self.semantic.quadruples)-1)
+
+    def p_expression_while_start(self,p):
+        '''
+        while_start : empty
+        '''
+        self.semantic.jumps_stack.append(len(self.semantic.quadruples))
+
+        
+
     def p_asignation_factor(self,p):
         '''
         asignation : param EQUAL expression SEMICOLONS

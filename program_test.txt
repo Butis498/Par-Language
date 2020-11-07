@@ -27,7 +27,9 @@ if (j == 1) then
 
 void module inicia (int y)
 var int x;
+    char l;
 { x=0;
+    l = 'l';
     while( x < 11) do
     {
         Arreglo[x] = i * x;
@@ -40,7 +42,6 @@ main ()
 { 
     read(p); j = p *2;
     inicia( p * j -5);
-    for i=9 to 9 do
-    { Arreglo[i] = Arreglo[i] * fact(Arreglo[i] - p); }
+    
 
 }

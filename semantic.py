@@ -15,6 +15,7 @@ class Semantic():
         self.temp_count = 0
         self.const_var_count = 0
         self.goto_quadruples_stack = []
+        self.operand_stack = []
 
         self.variables_base_memory = {
 
@@ -60,7 +61,7 @@ class Semantic():
             print('No memory type found, ' + str(err))
 
     def insert_variable(self, variable_name, variable_type, scope):
-
+        
         try:
             new_variable = (variable_name, self.memory_count[scope][variable_type])
             base ,top = self.get_range(scope)
@@ -138,8 +139,8 @@ class Semantic():
 
             raise TypeError(str(err))
 
-        operand_1_addr = self.get_result_type(operand_1)
-        operand_2_addr = self.get_result_type(operand_2)
+        operand_1_addr = self.get_var_addr(operand_1)
+        operand_2_addr = self.get_var_addr(operand_2)
             
         
         if save_loc == None:
@@ -154,7 +155,7 @@ class Semantic():
             self.last_temp = newTemp
             self.temp_count += 1
    
-        save_loc_addr = self.get_result_type(save_loc)
+        save_loc_addr = self.get_var_addr(save_loc)
 
         try:
             operand1_mem = operand_1_addr
@@ -202,7 +203,7 @@ class Semantic():
             raise ValueError('Cant get var scope '+ str(var[0]))
 
 
-    def get_result_type(self,var_name):
+    def get_var_addr(self,var_name):
 
         base_local,top_local = self.get_range('local')
         base_global,top_global = self.get_range('global')
@@ -242,8 +243,10 @@ class Semantic():
             return 'int'
         elif type(var) == float:
             return 'float'
-        elif type(var) == str and var[0] == '"' and var[-1] == '"' and len(var) == 3:
+        elif type(var) == str and var[0] == "'" and var[-1] == "'" and len(var) == 3:
             return 'char'
+        elif type(var) == str and var[0] == '"' and var[-1] == '"':
+            return 'string'
         elif type(var) == str:
             if var == 'True' or var == 'False':
                 return 'bool'
@@ -264,7 +267,7 @@ class Semantic():
                     raise ValueError('No last tmep value for action type ')
             else:
 
-                operand_1_addr = self.get_result_type(operand_1)
+                operand_1_addr = self.get_var_addr(operand_1)
 
             quadruple = {'operation': action, 'operand_1': operand_1_addr,
                             'operand_2': None, 'save_loc': None}
@@ -295,8 +298,8 @@ class Semantic():
 
             raise TypeError(str(err))
 
-        operand_1_addr = self.get_result_type(operand_1)
-        save_loc_addr = self.get_result_type(save_loc)
+        operand_1_addr = self.get_var_addr(operand_1)
+        save_loc_addr = self.get_var_addr(save_loc)
 
         validation_type_1 = self.variables_table[(operand_1,operand_1_addr)]['type']
         validation_type_2 = self.variables_table[(save_loc,save_loc_addr)]['type']
@@ -313,18 +316,21 @@ class Semantic():
 
     def insert_quadruple_goto(self,quadruple_num=None,operand_1=None,goto_type=None):
 
-        if operand_1 == None:
+        print(quadruple_num,operand_1,goto_type)
+        if operand_1 == None and goto_type != None:
             try:
                 operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
                 operand_1_addr = list(self.last_temp.keys())[0][1]
+                           
             except:
                 raise ValueError('No last temp value')
         
-        operand_1_addr = self.get_result_type(operand_1)
-    
-        print(self.get_variable_type(operand_1))
-        if self.get_variable_type(operand_1) != 'bool':
-            raise TypeError('Not bool variable')
+        else:
+            if operand_1 != None:
+                operand_1_addr = self.get_var_addr(operand_1) 
+
+                if self.get_variable_type(operand_1) != 'bool':
+                    raise TypeError(f'{operand_1} Not bool variable')
             
 
         goto = 'goto'
@@ -337,7 +343,7 @@ class Semantic():
             operand_1_addr = None
 
         
-        quadruple = {'operation':goto,'operand_1':operand_1_addr,'operand_2':'','save_loc':None}
+        quadruple = {'operation':goto,'operand_1':operand_1_addr,'operand_2':None,'save_loc':quadruple_num}
         print(quadruple) 
         self.quadruples.append(quadruple)
         self.goto_quadruples_stack.append(self.quadruples[-1])
@@ -345,7 +351,7 @@ class Semantic():
 
     def get_variable_type(self, var):
 
-        addr = self.get_result_type(var)
+        addr = self.get_var_addr(var)
 
         for scope in self.variables_base_memory.keys():
             for type_var in self.variables_base_memory[scope].keys():
@@ -353,6 +359,12 @@ class Semantic():
                 top = base + self.MEMORY_SPACE -1
                 if base <= addr <= top:
                     return type_var
+
+    def print_quadruples(self):
+        cont = 0
+        for quadruple in self.quadruples:
+            print(cont,quadruple)
+            cont += 1
 
         
 
