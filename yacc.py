@@ -202,9 +202,45 @@ class MyParser(object):
 
     def p_expression_repetitionstatute1(self,p):
         '''
-        repetitionstatute1 : FOR param EQUAL expression TO expression
-                           |  WHILE while_start while_end
+        repetitionstatute1 : FOR for_asign end_for
+                           | WHILE while_start while_end
         '''
+
+    def p_expression_end_for(self,p):
+        '''
+        end_for : TO expression
+        '''
+        
+        if p[2] == None:
+            last_temp = list(self.semantic.last_temp.keys())[0][0]
+        else:
+            last_temp = p[2]
+
+        
+        comp = self.semantic.operand_stack[-1]
+        self.semantic.operand_stack.pop(-1)
+        self.semantic.insert_quadruple_operation('<=',comp,last_temp)
+        self.semantic.insert_quadruple_goto(None,goto_type=False)
+        self.semantic.jumps_stack.append(len(self.semantic.quadruples)-1)
+
+    def p_expression_for_asign(self,p):
+        '''
+        for_asign : param EQUAL expression
+        '''
+        if self.semantic.get_variable_type(p[1]) != 'int':
+            raise TypeError('Not int type in loop')
+        
+       
+        if p[3] == None:
+            last_temp = list(self.semantic.last_temp.keys())[0][0]
+        else:
+            last_temp = p[3]
+        
+
+        self.semantic.insert_quadruple_asignation(p[1],last_temp)
+        self.semantic.operand_stack.append(p[1])
+        self.semantic.jumps_stack.append(len(self.semantic.quadruples))
+
 
 
     def p_expression_while_end(self,p):

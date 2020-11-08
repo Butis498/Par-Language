@@ -30,6 +30,7 @@ var int x;
     char l;
 { x=0;
     l = 'l';
+    write(i);
     while( x < 11) do
     {
         Arreglo[x] = i * x;
@@ -40,6 +41,14 @@ var int x;
 
 main ()
 { 
+    for i = i +1 to 9 + j do{ i = i +1;
+        for i = i +1 to 9 + j do{
+            write(i);
+            write(i);
+            write(i);
+            read(i);
+        }
+    }
     read(p); j = p *2;
     inicia( p * j -5);
     
