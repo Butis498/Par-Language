@@ -27,7 +27,7 @@ if (i == 1) then
                 
 }
 
-module void  inicia (int y)
+module void  inicia ()
 var int x;
     char l;
 { x=0;

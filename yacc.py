@@ -71,8 +71,10 @@ class MyParser(object):
     def p_expression_functions2(self,p):
         '''
         functions2 : type param functions4
+                   | empty functions4
         '''
-        self.semantic.insert_variable(p[2],p[1],'local')
+        if p[1] != None:
+            self.semantic.insert_variable(p[2],p[1],'local')
 
     
         
