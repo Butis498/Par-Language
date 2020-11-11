@@ -4,8 +4,10 @@ var
     int Arreglo[10];
     float valor;
     int Matrix[3][8];
+    char f;
+    
 
-void module fact (int j)
+module int fact (int l)
 var int i,j;
     char k;
     bool o;
@@ -14,7 +16,7 @@ read(i);
 o = True;
 write(j+1);
 write(j+1,i);
-if (j == 1) then
+if (i == 1) then
     {
         if ( 3 +2 == 5) then{ return(i);}
         read(i);
@@ -25,7 +27,7 @@ if (j == 1) then
                 
 }
 
-void module inicia (int y)
+module void  inicia (int y)
 var int x;
     char l;
 { x=0;
@@ -40,6 +42,8 @@ var int x;
 }
 
 main ()
+var 
+    int i,l;
 { 
     for i = i +1 to 9 + j do{ i = i +1;
         for i = i +1 to 9 + j do{

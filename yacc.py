@@ -51,7 +51,7 @@ class MyParser(object):
 
     def p_expression_functions(self,p):
         '''
-        functions : functions1 MODULE ID LPAREN functions2 RPAREN functions5 block erase_mem functions3
+        functions : MODULE functions1  ID LPAREN functions2 RPAREN functions5 block erase_mem functions3
         '''
         
 
@@ -59,7 +59,6 @@ class MyParser(object):
         '''
         functions1 : type
                    | VOID
-        functions2 : type param functions4
         functions3 : functions
                    | empty
         functions4 : COMA functions2
@@ -69,6 +68,12 @@ class MyParser(object):
 
         '''
 
+    def p_expression_functions2(self,p):
+        '''
+        functions2 : type param functions4
+        '''
+        self.semantic.insert_variable(p[2],p[1],'local')
+
     
         
     def p_expression_erase_mem(self,p):
@@ -76,6 +81,7 @@ class MyParser(object):
         erase_mem : empty
         '''
         self.semantic.reset_memory('temp')
+        self.semantic.reset_memory('local')
 
     def p_term_type(self,p):
         
@@ -320,9 +326,10 @@ class MyParser(object):
     
     def p_expression_main(self,p):
         '''
-        main : MAIN LPAREN RPAREN block
+        main : MAIN LPAREN RPAREN vars block
         '''
         self.semantic.reset_memory('temp')
+        self.semantic.reset_memory('local')
 
     def p_expression_param(self,p):
         '''
@@ -449,6 +456,7 @@ class MyParser(object):
         #r = MyLexer()
         #r.printTokens(inputString)
         self.parser.parse(input=inputString,lexer=self.lexer,debug=False)
+        
 
     # Error rule for syntax errors
     def p_error(self,p):
