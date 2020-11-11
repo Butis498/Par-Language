@@ -16,6 +16,8 @@ class Semantic():
         self.const_var_count = 0
         self.goto_quadruples_stack = []
         self.operand_stack = []
+        self.current_func = None
+        self.variables_table_func = {}
 
         self.variables_base_memory = {
 
@@ -48,7 +50,7 @@ class Semantic():
 
     def reset_memory(self, memory_type):
 
-
+        
         try:
             self.memory_count[memory_type] = copy.deepcopy(self.variables_base_memory[memory_type])
             base,top = self.get_range(memory_type)
@@ -56,11 +58,13 @@ class Semantic():
                 if base <= addr <= top:
                     del self.variables_table[(var,addr)]
 
+            self.current_func = None
+
         except KeyError as err:
 
             print('No memory type found, ' + str(err))
 
-    def insert_variable(self, variable_name, variable_type, scope):
+    def insert_variable(self, variable_name, variable_type, scope, param=False):
         
         try:
             new_variable = (variable_name, self.memory_count[scope][variable_type])
@@ -73,6 +77,9 @@ class Semantic():
             variable = {new_variable: {'type': variable_type}}
             self.variables_table.update(variable)
 
+            if param:
+                self.variables_table_func.update(variable)
+
             if self.memory_count[scope][variable_type] >= top:
                 raise MemoryError('Out of memory variables')
 
@@ -82,6 +89,34 @@ class Semantic():
 
             raise KeyError('Can not insert variable, ' + str(err))
 
+    def get_func_memory_usage(self):
+        res = {'int':0,'float':0,'char':0,'bool':0}
+
+        for var in self.variables_table.keys():
+            if var not in self.variables_table_func:
+                
+                base_glob,top_glob = self.get_range('global')
+                base_const,top_const = self.get_range('const')
+                if var[1] not in range(base_glob,top_glob) and var[1] not in range(base_const,top_const):
+                    res[self.variables_table[var]['type']] += 1
+
+
+        return res
+
+
+    def insert_end_func_quadruple(self):
+
+        quadruple = {'operation': 'endfunc', 'operand_1': None,
+                    'operand_2': None, 'save_loc': None}
+
+        self.quadruples.append(quadruple)
+
+    def insert_gosub_quadruple(self,subfunc):
+
+        quadruple = {'operation': 'gosub', 'operand_1': subfunc,
+                    'operand_2': None, 'save_loc': None}
+
+        self.quadruples.append(quadruple)
 
 
     def insert_function(self, function_name, function_type):
@@ -91,7 +126,10 @@ class Semantic():
             raise KeyError("Function " + function_name + " already exists")
 
         try:
-            function = {function_name: {'type': function_type}}
+
+            memory_usage = self.get_func_memory_usage()
+            print(memory_usage)
+            function = {function_name: {'type': function_type,'memory_usage':memory_usage ,'params':self.variables_table_func}}
             self.functions_table.update(function)
         except KeyError as err:
 

@@ -51,9 +51,19 @@ class MyParser(object):
 
     def p_expression_functions(self,p):
         '''
-        functions : MODULE functions1  ID LPAREN functions2 RPAREN functions5 block erase_mem functions3
+        functions : end_func erase_mem functions3
         '''
+       
+
+    def p_expression_end_func(self,p):
+        '''
+        end_func : MODULE functions1 func_name LPAREN functions2 RPAREN functions5 block
+        '''
+        print(self.semantic.current_func,self.semantic.variables_table_func , "=====================")
         
+        self.semantic.insert_function(p[3],p[2])
+        self.semantic.variables_table_func.clear()
+        self.semantic.insert_end_func_quadruple()
 
     def p_expression_functions1(self,p):
         '''
@@ -68,13 +78,21 @@ class MyParser(object):
 
         '''
 
+    def p_expression_func_name(self,p):
+        '''
+        func_name : ID
+        '''
+        self.semantic.current_func = p[1]
+        p[0] = p[1]
+
+
     def p_expression_functions2(self,p):
         '''
         functions2 : type param functions4
                    | empty functions4
         '''
         if p[1] != None:
-            self.semantic.insert_variable(p[2],p[1],'local')
+            self.semantic.insert_variable(p[2],p[1],'local',True)
 
     
         
@@ -84,6 +102,7 @@ class MyParser(object):
         '''
         self.semantic.reset_memory('temp')
         self.semantic.reset_memory('local')
+
 
     def p_term_type(self,p):
         
@@ -328,10 +347,16 @@ class MyParser(object):
     
     def p_expression_main(self,p):
         '''
-        main : MAIN LPAREN RPAREN vars block
+        main : MAIN LPAREN RPAREN main2 block
         '''
         self.semantic.reset_memory('temp')
         self.semantic.reset_memory('local')
+
+    def p_expression_main2(self,p):
+        '''
+        main2 : vars
+              | empty
+        '''
 
     def p_expression_param(self,p):
         '''

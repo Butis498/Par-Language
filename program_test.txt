@@ -7,7 +7,7 @@ var
     char f;
     
 
-module int fact (int l)
+module int fact (int l,bool f)
 var int i,j;
     char k;
     bool o;
@@ -42,8 +42,6 @@ var int x;
 }
 
 main ()
-var 
-    int i,l;
 { 
     for i = i +1 to 9 + j do{ i = i +1;
         for i = i +1 to 9 + j do{
