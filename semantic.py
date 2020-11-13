@@ -18,6 +18,10 @@ class Semantic():
         self.operand_stack = []
         self.current_func = None
         self.variables_table_func = {}
+        self.param_count = 0
+        self.func_call_stack = []
+        
+
 
         self.variables_base_memory = {
 
@@ -90,56 +94,151 @@ class Semantic():
             raise KeyError('Can not insert variable, ' + str(err))
 
     def get_func_memory_usage(self):
-        res = {'int':0,'float':0,'char':0,'bool':0}
+        res = {'temp':{'int':0,'float':0,'char':0,'bool':0},
+                'local':{'int':0,'float':0,'char':0,'bool':0}}
+
+        
 
         for var in self.variables_table.keys():
             if var not in self.variables_table_func:
                 
                 base_glob,top_glob = self.get_range('global')
                 base_const,top_const = self.get_range('const')
+                base_temp,top_temp = self.get_range('temp')
+                base_local,top_local = self.get_range('local')
                 if var[1] not in range(base_glob,top_glob) and var[1] not in range(base_const,top_const):
-                    res[self.variables_table[var]['type']] += 1
+                    
+                    if var[1] in range(base_temp,top_temp):
+                        res['temp'][self.variables_table[var]['type']] += 1
+
+                    if var[1] in range(base_local,top_local):
+                        res['local'][self.variables_table[var]['type']] += 1
 
 
         return res
 
+    def insert_func_quadruple(self,operation,func=None):
 
-    def insert_end_func_quadruple(self):
-
-        quadruple = {'operation': 'endfunc', 'operand_1': None,
-                    'operand_2': None, 'save_loc': None}
+        quadruple = {'operation': operation, 'operand_1': None,
+                    'operand_2': None, 'save_loc': func}
 
         self.quadruples.append(quadruple)
+
+    def insert_param_quadruple(self,operand_1,save_loc):
+
+        if operand_1 == None:
+            try:
+                operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
+                operand_1_addr = list(self.last_temp.keys())[0][1]
+            except:
+                raise ValueError('No last temp value')
+        
+        try:
+            print(self.get_value_type(save_loc),save_loc,'-------------------------------------')
+            if self.get_value_type(operand_1) != 'var':
+                
+                type_1 = self.get_value_type(operand_1)
+                operand_1 = 'const'+str(self.const_var_count)
+                self.insert_variable(operand_1,type_1,'const')
+                self.const_var_count += 1
+
+        except TypeError as err:
+
+            raise TypeError(str(err))
+
+
+        operand_1_addr = self.get_var_addr(operand_1)
+        save_loc_addr = save_loc
+
+        
+        validation_type_1 = self.variables_table[(operand_1,operand_1_addr)]['type']
+        validation_type_2 = self.get_addr_type(save_loc_addr)
+
+        if validation_type_1 != validation_type_2:
+            raise TypeError(f'Incompatible Types {validation_type_1} and {validation_type_2}')
+
+        quadruple = {'operation': 'param', 'operand_1': operand_1_addr,
+                    'operand_2': None, 'save_loc': save_loc_addr}
+
+        print(quadruple)
+        self.quadruples.append(quadruple)
+
+    def verify_params_num(self):
+        params_number = len(self.get_era(self.func_call_stack[-1]))
+        params_give = self.param_count
+        print('hhhhhh')
+        if params_number != params_give:
+            raise IndexError('Missing Params in function '+ str(self.func_call_stack[-1]) )
+
+    def get_era(self,func):
+        try:
+            params =  list(reversed(list(self.functions_table[func]['params'])))
+
+        except KeyError as err:
+
+            raise KeyError('Not function found ' , str(err))
+
+        return params
+
+    def get_curr_param_addr(self,func):
+
+        print(self.functions_table)
+
+        era = self.get_era(func)
+        try:
+            curret_param  = era[self.param_count]
+        except IndexError:
+            raise IndexError('Too many arguments in function '+func)
+        var = curret_param[1]
+        return var
+
 
     def insert_gosub_quadruple(self,subfunc):
 
-        quadruple = {'operation': 'gosub', 'operand_1': subfunc,
-                    'operand_2': None, 'save_loc': None}
+        quadruple = {'operation': 'gosub', 'operand_1': None,
+                    'operand_2': None, 'save_loc': subfunc}
 
         self.quadruples.append(quadruple)
 
 
-    def insert_function(self, function_name, function_type):
-
+    def insert_func(self,function_name,function_type):
+        
         if function_name in self.functions_table.keys():
-
             raise KeyError("Function " + function_name + " already exists")
+        if function_type != 'void':
+            self.insert_variable(function_name,function_type,'global')
+        function = {function_name: {'type': function_type,'memory_usage':None ,'params':None}}
+        self.functions_table.update(function)
+
+
+    def update_func(self, function_name):
+
 
         try:
 
             memory_usage = self.get_func_memory_usage()
             print(memory_usage)
-            function = {function_name: {'type': function_type,'memory_usage':memory_usage ,'params':self.variables_table_func}}
-            self.functions_table.update(function)
+            params_table = copy.deepcopy(self.variables_table_func)
+            self.functions_table[function_name]['params']= params_table
+            self.variables_table_func.clear()
         except KeyError as err:
 
-            print('Can not declare function, ' + str(err))
+            print('Can not update function, ' + str(err))
 
-    def function_call(self, function_name):
 
-        if function_name not in self.functions_table.keys():
+    def update_func_memory(self, function_name):
 
-            raise KeyError("Function " + str(function_name) + " not declared")
+
+        try:
+
+            memory_usage = self.get_func_memory_usage()
+            print(memory_usage)
+            self.functions_table[function_name]['memory_usage']= memory_usage
+            self.variables_table_func.clear()
+        except KeyError as err:
+
+            print('Can not update function, ' + str(err))
+
 
     def insert_quadruple_operation(self, operation, operand_1=None, operand_2=None, save_loc=None):
 
@@ -302,8 +401,21 @@ class Semantic():
                     operand_1_addr = list(self.last_temp.keys())[0][1]
 
                 except:
-                    raise ValueError('No last tmep value for action type ')
+                    raise ValueError('No last temp value for action type ')
             else:
+
+                try:
+                    if self.get_value_type(operand_1) != 'var':
+                        
+                        type_1 = self.get_value_type(operand_1)
+                        operand_1 = 'const'+str(self.const_var_count)
+                        self.insert_variable(operand_1,type_1,'const')
+                        self.const_var_count += 1
+
+                except TypeError as err:
+
+                    raise TypeError(str(err))
+
 
                 operand_1_addr = self.get_var_addr(operand_1)
 
@@ -337,9 +449,21 @@ class Semantic():
             raise TypeError(str(err))
 
         operand_1_addr = self.get_var_addr(operand_1)
-        save_loc_addr = self.get_var_addr(save_loc)
 
         validation_type_1 = self.variables_table[(operand_1,operand_1_addr)]['type']
+        
+
+        if save_loc == None:
+  
+            save_loc = 'temp'+str(self.temp_count)
+            temp_type = validation_type_1
+            self.insert_variable(save_loc,temp_type,'temp')
+            new_var = (save_loc , self.memory_count['temp'][temp_type]-1)#the variable count has increase so take one from the memory count
+            newTemp = {new_var:{'type':temp_type}}
+            self.last_temp = newTemp
+            self.temp_count += 1
+
+        save_loc_addr = self.get_var_addr(save_loc)
         validation_type_2 = self.variables_table[(save_loc,save_loc_addr)]['type']
 
         if validation_type_1 != validation_type_2:
@@ -398,6 +522,16 @@ class Semantic():
                 if base <= addr <= top:
                     return type_var
 
+    def get_addr_type(self, addr):
+
+
+        for scope in self.variables_base_memory.keys():
+            for type_var in self.variables_base_memory[scope].keys():
+                base = self.variables_base_memory[scope][type_var]
+                top = base + self.MEMORY_SPACE -1
+                if base <= addr <= top:
+                    return type_var
+
     def print_quadruples(self):
         cont = 0
         for quadruple in self.quadruples:
@@ -405,6 +539,5 @@ class Semantic():
             cont += 1
 
         
-
-                
+    
                 

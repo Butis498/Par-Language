@@ -7,7 +7,7 @@ var
     char f;
     
 
-module int fact (int l,bool f)
+module int fact (int l,bool f,int gol,char uuu)
 var int i,j;
     char k;
     bool o;
@@ -23,8 +23,10 @@ if (i == 1) then
         return (j);}
     else
     {   write(i,j);
-        return (j* fact(j-1));}
-                
+        
+        return (fact(i,i == 1,i,'f'));}
+    
+           
 }
 
 module void  inicia ()
@@ -37,11 +39,14 @@ var int x;
     {
         Arreglo[x] = i * x;
         x = x + 1;
+        fact(i,i == 1,i,'f');
     }
-
+    
 }
 
 main ()
+var
+    bool gg;
 { 
     for i = i +1 to 9 + j do{ i = i +1;
         for i = i +1 to 9 + j do{
@@ -51,8 +56,8 @@ main ()
             read(i);
         }
     }
-    read(p); j = p *2;
-    inicia( p * j -5);
     
+    read(p); j = p *2;
+    inicia();
 
 }

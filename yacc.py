@@ -57,18 +57,35 @@ class MyParser(object):
 
     def p_expression_end_func(self,p):
         '''
-        end_func : MODULE functions1 func_name LPAREN functions2 RPAREN functions5 block
+        end_func : MODULE func_dec LPAREN functions2 RPAREN functions5 update_params block
         '''
         print(self.semantic.current_func,self.semantic.variables_table_func , "=====================")
         
-        self.semantic.insert_function(p[3],p[2])
-        self.semantic.variables_table_func.clear()
-        self.semantic.insert_end_func_quadruple()
+        self.semantic.update_func_memory(self.semantic.current_func)
+        self.semantic.insert_func_quadruple(operation='endfunc')
+
+
+    def p_asignation_update_params(self,p):
+        '''
+        update_params : empty
+        '''
+        self.semantic.update_func(self.semantic.current_func)
+
+    def p_asignation_func_dec(self,p):
+        '''
+        func_dec : functions1 func_name
+        '''
+        self.semantic.insert_func(p[2],p[1])
 
     def p_expression_functions1(self,p):
         '''
         functions1 : type
                    | VOID
+        '''
+        p[0] = p[1]
+
+    def p_expression_functions3(self,p):
+        '''
         functions3 : functions
                    | empty
         functions4 : COMA functions2
@@ -83,6 +100,7 @@ class MyParser(object):
         func_name : ID
         '''
         self.semantic.current_func = p[1]
+        
         p[0] = p[1]
 
 
@@ -297,6 +315,11 @@ class MyParser(object):
         '''
         print('return',p[3])
         self.semantic.insert_quadruple_action(p[1],p[3])
+        try:
+            self.semantic.insert_quadruple_asignation(self.semantic.current_func,p[3])
+        except KeyError:
+
+            raise KeyError('No return for function given')
         
 
     def p_asignation_detect_asignation(self,p):
@@ -321,12 +344,46 @@ class MyParser(object):
 
     def p_expression_call(self,p):
         '''
-        call : ID LPAREN call1 RPAREN 
-        call1 : expression call2
+        call : era LPAREN call1 end_params RPAREN 
+        '''
+        self.semantic.verify_params_num()
+        self.semantic.func_call_stack.pop(-1)
+        self.semantic.param_count = 0
+        p[0] = None
+
+        
+
+    def p_expression_end_params(self,p):
+        '''
+        end_params : empty
+        '''
+        self.semantic.insert_gosub_quadruple(self.semantic.func_call_stack[-1])
+        try:
+            self.semantic.insert_quadruple_asignation(None,self.semantic.func_call_stack[-1])
+        except KeyError:
+            pass
+        
+    def p_expression_call1(self,p):
+        '''
+        call1 : param_exp call2
+              | empty
         call2 : COMA call1
               | empty
         '''
 
+    def p_expression_param_exp(self,p):
+        '''
+        param_exp : expression
+        '''
+        self.semantic.insert_param_quadruple(p[1],self.semantic.get_curr_param_addr(self.semantic.func_call_stack[-1]))
+        self.semantic.param_count += 1
+
+    def p_expression_era(self,p):
+        '''
+        era : ID
+        '''
+        self.semantic.insert_func_quadruple(operation='era',func=p[1])
+        self.semantic.func_call_stack.append(p[1])
     def p_expression_comparison(self,p):
         '''
         comparison : exp comparison1 exp
