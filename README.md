@@ -1,4 +1,4 @@
 Esteban Salazar
 Adrian Gonzalez
 
-En este avanze se incluyo la generacion de cuadruplos con el uso de direcciones de memoria.
+En este avance sew agrego la produccion de quadruplos de funciones con validacin de tipos y ruturns para cada funcion se probo la recursividad y funciono correctamente

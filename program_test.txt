@@ -37,7 +37,7 @@ var int x;
     write(i);
     while( x < 11) do
     {
-        Arreglo[x] = i * x;
+        Arreglo[x] = Arreglo[i+3 * 2] * Matrix[3+1][x+i];
         x = x + 1;
         fact(i,i == 1,i,'f');
     }

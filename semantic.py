@@ -68,7 +68,51 @@ class Semantic():
 
             print('No memory type found, ' + str(err))
 
-    def insert_variable(self, variable_name, variable_type, scope, param=False):
+    def insert_variable(self, variable_name, variable_type, scope, param=False, dim1=None,dim2=None):
+
+        dims = {}
+        if dim1 != None:
+            
+            if dim2 == None:
+
+                index_1 = 'const'+str(self.const_var_count)
+                self.insert_variable(index_1,'int','const')
+                self.const_var_count += 1
+                
+                m1 = 'const'+str(self.const_var_count)
+                self.insert_variable(m1,'int','const')
+                self.const_var_count += 1
+
+                index_1_addr = self.get_var_addr(index_1)
+                m1_addr = self.get_var_addr(m1)
+
+                dims.update({'m1':m1_addr,'index_1':index_1_addr})
+                
+            else:
+                index_1 = 'const'+str(self.const_var_count)
+                self.insert_variable(index_1,'int','const')
+                self.const_var_count += 1
+
+                m1 = 'const'+str(self.const_var_count)
+                self.insert_variable(m1,'int','const')
+                self.const_var_count += 1
+
+                index_2 = 'const'+str(self.const_var_count)
+                self.insert_variable(index_2,'int','const')
+                self.const_var_count += 1
+
+                m2 = 'const'+str(self.const_var_count)
+                self.insert_variable(m2,'int','const')
+                self.const_var_count += 1
+
+                index_1_addr = self.get_var_addr(index_1)
+                m1_addr = self.get_var_addr(m1)
+
+                index_2_addr = self.get_var_addr(index_2)
+                m2_addr = self.get_var_addr(m2)
+
+                dims.update({'m1':m1_addr,'m2':m2_addr,'index_1':index_1_addr,'index_2':index_2_addr})
+
         
         try:
             new_variable = (variable_name, self.memory_count[scope][variable_type])
@@ -80,6 +124,7 @@ class Semantic():
 
             variable = {new_variable: {'type': variable_type}}
             self.variables_table.update(variable)
+            self.variables_table[new_variable].update(dims)
 
             if param:
                 self.variables_table_func.update(variable)
@@ -538,6 +583,55 @@ class Semantic():
             print(cont,quadruple)
             cont += 1
 
+        print(self.variables_table)
+
+
+    def insert_ver_quadruple(self,arr_name,operand_1=None,dim1=True):
+
+        if operand_1 == None:
+            try:
+                operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
+                operand_1_addr = list(self.last_temp.keys())[0][1]
+            except:
+                raise ValueError('No last temp value')
+        
+        try:
+            if self.get_value_type(operand_1) != 'var':
+                
+                type_1 = self.get_value_type(operand_1)
+                operand_1 = 'const'+str(self.const_var_count)
+                self.insert_variable(operand_1,type_1,'const')
+                self.const_var_count += 1
+
+
+        except TypeError as err:
+
+            raise TypeError(str(err))
+
+        operand_1_addr = self.get_var_addr(operand_1)
+        var_addr = self.get_var_addr(arr_name)
+        var = (arr_name,var_addr)
+
+        try:
+            base = self.get_var_addr(arr_name)
+            curr_var = (arr_name,base)
+            m1 = self.variables_table[curr_var]['m1']
+            if dim1 == True:
+                
+                index = self.variables_table[var]['index_1']
+                
+            else:
+                index = self.variables_table[var]['index_2']
+                m2 = self.variables_table[curr_var]['m2']
+        except KeyError as err:
+
+            raise IndexError('Wrong index in array' + str(err))
+
+
+        quadruple = {'operation':'ver','operand_1':operand_1_addr,'operand_2':0,'save_loc':index}
+        self.quadruples.append(quadruple)
+
+        
         
     
                 

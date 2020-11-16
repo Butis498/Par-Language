@@ -39,8 +39,13 @@ class MyParser(object):
         '''
         vars1 : type vars2
         '''
+        print(self.dims_stack)
         for var in self.variables_stack:
-            self.semantic.insert_variable(var,p[1],self.current_scope)
+            dim_1 = self.dims_stack[-1]
+            self.dims_stack.pop(-1)
+            dim_2 = self.dims_stack[-1]
+            self.dims_stack.pop(-1)
+            self.semantic.insert_variable(var,p[1],self.current_scope,dim1=dim_1,dim2=dim_2)
         self.variables_stack.clear()
 
     def p_expression_vars2(self,p):
@@ -338,9 +343,24 @@ class MyParser(object):
         '''
         var1 : LBRACKET INUM RBRACKET var2
              | empty
+        '''
+        if p[1] != None:
+            self.dims_stack.append(p[2])
+        else:
+            self.dims_stack.append(None)
+            self.dims_stack.append(None)
+            p[0] = None
+
+    def p_expression_var2(self,p):
+        '''
         var2 : LBRACKET INUM RBRACKET
              | empty
         '''
+        if p[1] != None:
+            self.dims_stack.append(p[2])
+        else:
+            self.dims_stack.append(None)
+            p[0] = None
 
     def p_expression_call(self,p):
         '''
@@ -417,17 +437,44 @@ class MyParser(object):
 
     def p_expression_param(self,p):
         '''
-        param : ID param1
+        param : param_id param1
         '''
         p[0] = p[1]
+        self.current_arr.pop(-1)
+        
+
+    def p_expression_param_id(self,p):
+        '''
+        param_id : ID
+        '''
+        p[0] = p[1]
+        self.current_arr.append(p[1])
 
     def p_expression_param1(self,p):
         '''
-        param1 : LBRACKET expression RBRACKET param2
-               | empty
-        param2 : LBRACKET expression RBRACKET
+        param1 : LBRACKET ver_dim1 RBRACKET param2
                | empty
         '''
+
+
+    def p_expression_param2(self,p):
+        '''
+        param2 : LBRACKET ver_dim2 RBRACKET
+               | empty
+        '''
+
+    def p_expression_ver_dim1(self,p):
+        '''
+        ver_dim1 : expression empty
+        '''
+        self.semantic.insert_ver_quadruple(self.current_arr[-1],p[1])
+
+    def p_expression_ver_dim2(self,p):
+        '''
+        ver_dim2 : expression empty
+        '''
+        self.semantic.insert_ver_quadruple(self.current_arr[-1],p[1],False)
+      
 
     def p_expression_expression(self,p):
         '''
@@ -553,5 +600,7 @@ class MyParser(object):
         self.current_type =''
         self.current_scope = 'global'
         self.variables_stack  = []
+        self.dims_stack = []
+        self.current_arr = []
 
 
