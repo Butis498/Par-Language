@@ -9,7 +9,7 @@ class Semantic():
         self.next_memory_block = self.MEMORY_SPACE
         self.variables_table = {}
         self.functions_table = {}
-        self.jumps_stack = []
+        self.jumps_stack = [0]
         self.quadruples = []
         self.last_temp = {}
         self.temp_count = 0

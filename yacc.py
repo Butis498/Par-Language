@@ -9,9 +9,18 @@ class MyParser(object):
 
     def p_expression_program(self,p):
         '''
-        program : PROGRAM ID SEMICOLONS program2 program3 main
+        program : start_goto PROGRAM ID SEMICOLONS program2 program3 main
         '''
+        
+        quadruple_end =  {'operation':'end','operand_1':None,'operand_2':None,'save_loc':None}
+        self.semantic.quadruples.append(quadruple_end)
         self.semantic.print_quadruples()
+        
+    def p_expression_start_goto(self,p):
+        '''
+        start_goto : empty
+        '''
+        self.semantic.insert_quadruple_goto(None,None,None)
 
     def p_expression_program2(self,p):
         '''
@@ -424,10 +433,16 @@ class MyParser(object):
     
     def p_expression_main(self,p):
         '''
-        main : MAIN LPAREN RPAREN main2 block
+        main : MAIN insert_jump LPAREN RPAREN main2 block
         '''
         self.semantic.reset_memory('temp')
         self.semantic.reset_memory('local')
+
+    def p_expression_insert_jump(self,p):
+        '''
+        insert_jump : empty
+        '''
+        self.semantic.quadruples[self.semantic.jumps_stack[-1]]['save_loc'] = len(self.semantic.quadruples)
 
     def p_expression_main2(self,p):
         '''
