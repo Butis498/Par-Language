@@ -20,6 +20,7 @@ class Semantic():
         self.variables_table_func = {}
         self.param_count = 0
         self.func_call_stack = []
+        self.pointer_count = 0
         
 
 
@@ -41,6 +42,11 @@ class Semantic():
                      'bool': self.asign_memory_base()},
 
             'const': {'int': self.asign_memory_base(),
+                      'float': self.asign_memory_base(),
+                      'char': self.asign_memory_base(),
+                      'bool': self.asign_memory_base()},
+
+            'pointer': {'int': self.asign_memory_base(),
                       'float': self.asign_memory_base(),
                       'char': self.asign_memory_base(),
                       'bool': self.asign_memory_base()}
@@ -68,19 +74,21 @@ class Semantic():
 
             print('No memory type found, ' + str(err))
 
-    def insert_variable(self, variable_name, variable_type, scope, param=False, dim1=None,dim2=None):
+    def insert_variable(self, variable_name, variable_type, scope, param=False, dim1=None,dim2=None,value=None):
 
         dims = {}
+
         if dim1 != None:
             
             if dim2 == None:
 
                 index_1 = 'const'+str(self.const_var_count)
-                self.insert_variable(index_1,'int','const')
+                self.insert_variable(index_1,'int','const',value=dim1)
                 self.const_var_count += 1
                 
+                m1_value = 1
                 m1 = 'const'+str(self.const_var_count)
-                self.insert_variable(m1,'int','const')
+                self.insert_variable(m1,'int','const',value = m1_value)
                 self.const_var_count += 1
 
                 index_1_addr = self.get_var_addr(index_1)
@@ -90,19 +98,21 @@ class Semantic():
                 
             else:
                 index_1 = 'const'+str(self.const_var_count)
-                self.insert_variable(index_1,'int','const')
+                self.insert_variable(index_1,'int','const',value = dim1)
                 self.const_var_count += 1
 
+                m1_value = dim1 * dim2
                 m1 = 'const'+str(self.const_var_count)
-                self.insert_variable(m1,'int','const')
+                self.insert_variable(m1,'int','const',value = m1_value)
                 self.const_var_count += 1
 
                 index_2 = 'const'+str(self.const_var_count)
-                self.insert_variable(index_2,'int','const')
+                self.insert_variable(index_2,'int','const',value = dim2)
                 self.const_var_count += 1
 
+                m2_value = 1
                 m2 = 'const'+str(self.const_var_count)
-                self.insert_variable(m2,'int','const')
+                self.insert_variable(m2,'int','const',value = m2_value)
                 self.const_var_count += 1
 
                 index_1_addr = self.get_var_addr(index_1)
@@ -123,16 +133,28 @@ class Semantic():
                     raise KeyError('Variable ' + var + ' already exists')
 
             variable = {new_variable: {'type': variable_type}}
+
+            
             self.variables_table.update(variable)
             self.variables_table[new_variable].update(dims)
+
+            if scope == 'const' and value != None:
+                value_const = {'value':value}
+                self.variables_table[new_variable].update(value_const)
 
             if param:
                 self.variables_table_func.update(variable)
 
             if self.memory_count[scope][variable_type] >= top:
                 raise MemoryError('Out of memory variables')
-
-            self.memory_count[scope][variable_type] += 1
+            
+            if dim1 == None:
+                self.memory_count[scope][variable_type] += 1
+            else:
+                if dim2 != None:
+                    self.memory_count[scope][variable_type] += dim1 * dim2
+                else:
+                    self.memory_count[scope][variable_type] += dim1
 
         except KeyError as err:
 
@@ -211,7 +233,6 @@ class Semantic():
     def verify_params_num(self):
         params_number = len(self.get_era(self.func_call_stack[-1]))
         params_give = self.param_count
-        print('hhhhhh')
         if params_number != params_give:
             raise IndexError('Missing Params in function '+ str(self.func_call_stack[-1]) )
 
@@ -305,16 +326,17 @@ class Semantic():
         try:
             if self.get_value_type(operand_1) != 'var':
                 
+                value = operand_1
                 type_1 = self.get_value_type(operand_1)
                 operand_1 = 'const'+str(self.const_var_count)
-                self.insert_variable(operand_1,type_1,'const')
+                self.insert_variable(operand_1,type_1,'const',value=value)
                 self.const_var_count += 1
 
             if self.get_value_type(operand_2) != 'var':
-                
+                value = operand_2
                 type_2 = self.get_value_type(operand_2)
                 operand_2 = 'const'+str(self.const_var_count)
-                self.insert_variable(operand_2,type_2,'const')
+                self.insert_variable(operand_2,type_2,'const',value=value)
                 self.const_var_count += 1
 
         except TypeError as err:
@@ -451,10 +473,10 @@ class Semantic():
 
                 try:
                     if self.get_value_type(operand_1) != 'var':
-                        
+                        value = operand_1
                         type_1 = self.get_value_type(operand_1)
                         operand_1 = 'const'+str(self.const_var_count)
-                        self.insert_variable(operand_1,type_1,'const')
+                        self.insert_variable(operand_1,type_1,'const',value = value)
                         self.const_var_count += 1
 
                 except TypeError as err:
@@ -482,10 +504,10 @@ class Semantic():
         
         try:
             if self.get_value_type(operand_1) != 'var':
-                
+                value = operand_1
                 type_1 = self.get_value_type(operand_1)
                 operand_1 = 'const'+str(self.const_var_count)
-                self.insert_variable(operand_1,type_1,'const')
+                self.insert_variable(operand_1,type_1,'const',value = value)
                 self.const_var_count += 1
 
 
@@ -597,10 +619,10 @@ class Semantic():
         
         try:
             if self.get_value_type(operand_1) != 'var':
-                
+                value = operand_1
                 type_1 = self.get_value_type(operand_1)
                 operand_1 = 'const'+str(self.const_var_count)
-                self.insert_variable(operand_1,type_1,'const')
+                self.insert_variable(operand_1,type_1,'const',value = value)
                 self.const_var_count += 1
 
 
@@ -631,7 +653,84 @@ class Semantic():
         quadruple = {'operation':'ver','operand_1':operand_1_addr,'operand_2':0,'save_loc':index}
         self.quadruples.append(quadruple)
 
+
+    def insert_plus_quadruple(self,arr,operand_1=None):
+
+        if operand_1 == None:
+            try:
+                operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
+                operand_1_addr = list(self.last_temp.keys())[0][1]
+            except:
+                raise ValueError('No last tmep value')
         
+        operand_1_addr = self.get_var_addr(operand_1)
+
+        save_loc = 'pointer'+str(self.pointer_count)
+        temp_type = 'int'
+        self.insert_variable(save_loc,temp_type,'pointer',value=operand_1_addr)
+        new_var = (save_loc , self.memory_count['pointer'][temp_type]-1)#the variable count has increase so take one from the memory count
+        newTemp = {new_var:{'type':temp_type}}
+        self.last_temp = newTemp
+        self.pointer_count += 1
+        save_loc_addr = self.get_var_addr(save_loc)
+
+        base = self.get_var_addr(arr)
+        quadruple = {'operation':'+','operand_1':base,'operand_2':operand_1_addr,'save_loc':save_loc_addr}
+
         
+        self.quadruples.append(quadruple)
     
-                
+    def insert_times_quadruple(self,arr,operand_1=None):
+
+        if operand_1 == None:
+            try:
+                operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
+                operand_1_addr = list(self.last_temp.keys())[0][1]
+            except:
+                raise ValueError('No last tmep value')
+        
+        operand_1_addr = self.get_var_addr(operand_1)
+
+        save_loc = 'temp'+str(self.temp_count)
+        temp_type = 'int'
+        self.insert_variable(save_loc,temp_type,'temp',value=operand_1_addr)
+        new_var = (save_loc , self.memory_count['temp'][temp_type]-1)#the variable count has increase so take one from the memory count
+        newTemp = {new_var:{'type':temp_type}}
+        self.last_temp = newTemp
+        self.temp_count += 1
+        save_loc_addr = self.get_var_addr(save_loc)
+
+
+        base = self.get_var_addr(arr)
+        var = (arr,base)
+        m1 = self.variables_table[var]['m1']
+        quadruple = {'operation':'*','operand_1':m1,'operand_2':operand_1_addr,'save_loc':save_loc_addr}
+        self.quadruples.append(quadruple)    
+
+
+    def insert_plus_quadruple_dim2(self,arr,operand_1=None,dim1=None):
+
+        if operand_1 == None:
+            try:
+                operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
+                operand_1_addr = list(self.last_temp.keys())[0][1]
+            except:
+                raise ValueError('No last tmep value')
+        
+        operand_1_addr = self.get_var_addr(operand_1)
+        dim1_addr = self.get_var_addr(dim1)
+
+        save_loc = 'temp'+str(self.temp_count)
+        temp_type = 'int'
+        self.insert_variable(save_loc,temp_type,'temp',value=operand_1_addr)
+        new_var = (save_loc , self.memory_count['temp'][temp_type]-1)#the variable count has increase so take one from the memory count
+        newTemp = {new_var:{'type':temp_type}}
+        self.last_temp = newTemp
+        self.temp_count += 1
+        save_loc_addr = self.get_var_addr(save_loc)
+
+        base = self.get_var_addr(arr)
+        quadruple = {'operation':'+','operand_1':dim1_addr,'operand_2':operand_1_addr,'save_loc':save_loc_addr}
+
+        
+        self.quadruples.append(quadruple)           

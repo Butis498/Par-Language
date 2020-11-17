@@ -111,7 +111,7 @@ class MyParser(object):
 
     def p_expression_functions2(self,p):
         '''
-        functions2 : type param functions4
+        functions2 : type var functions4
                    | empty functions4
         '''
         if p[1] != None:
@@ -439,7 +439,10 @@ class MyParser(object):
         '''
         param : param_id param1
         '''
-        p[0] = p[1]
+        if p[2] == None:
+            p[0] = p[1]
+        else:
+            p[0] = list(self.semantic.last_temp.keys())[0][0]
         self.current_arr.pop(-1)
         
 
@@ -455,25 +458,50 @@ class MyParser(object):
         param1 : LBRACKET ver_dim1 RBRACKET param2
                | empty
         '''
+        if p[1] != None:
+            if p[4] == None:
+                self.semantic.insert_plus_quadruple(self.current_arr[-1],p[2])
 
+        p[0] = p[1]
 
     def p_expression_param2(self,p):
         '''
-        param2 : LBRACKET ver_dim2 RBRACKET
+        param2 : LBRACKET two_detect ver_dim2 RBRACKET
                | empty
         '''
+        if p[1] != None:
+            s1_times_m1 = self.dims_stack[-1]
+            self.dims_stack.pop(-1)
+            self.semantic.insert_plus_quadruple_dim2(self.current_arr[-1],p[3],s1_times_m1)
+            self.semantic.insert_plus_quadruple(self.current_arr[-1])
+            p[0] = p[1]
+            
+
+    def p_expression_two_detect(self,p):
+        '''
+        two_detect : empty
+        '''
+        
+        self.semantic.insert_times_quadruple(self.current_arr[-1],p[1])
+        self.dims_stack.append('temp'+str(self.semantic.temp_count-1))
+
 
     def p_expression_ver_dim1(self,p):
         '''
-        ver_dim1 : expression empty
+        ver_dim1 : expression 
         '''
-        self.semantic.insert_ver_quadruple(self.current_arr[-1],p[1])
+        curr_arr_name = self.current_arr[-1]
+        self.semantic.insert_ver_quadruple(curr_arr_name,p[1])
+        p[0] = p[1]
+            
 
     def p_expression_ver_dim2(self,p):
         '''
-        ver_dim2 : expression empty
+        ver_dim2 : expression 
         '''
-        self.semantic.insert_ver_quadruple(self.current_arr[-1],p[1],False)
+        curr_arr_name = self.current_arr[-1]
+        self.semantic.insert_ver_quadruple(curr_arr_name,p[1],False)
+        p[0] = p[1]
       
 
     def p_expression_expression(self,p):
