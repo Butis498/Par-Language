@@ -21,6 +21,7 @@ class Semantic():
         self.param_count = 0
         self.func_call_stack = []
         self.pointer_count = 0
+        self.supported_arr_op = ['+','-','*']
         
     
         self.variables_base_memory = {
@@ -75,54 +76,59 @@ class Semantic():
 
             raise TypeError('No memory type found, ' + str(err))
 
-    def insert_variable(self, variable_name, variable_type, scope, param=False, dim1=None,dim2=None,value=None):
+    def insert_variable(self, variable_name, variable_type, scope, param=False, dim1=None,dim2=None,value=None,arr_conf=None):
 
         dims = {}
 
-        if dim1 != None:
-            
-            if dim2 == None:
+        if arr_conf != None:
+            dims.update(arr_conf)
+        else:
 
-                index_1 = 'const'+str(self.const_var_count)
-                self.insert_variable(index_1,'int','const',value=dim1)
-                self.const_var_count += 1
+            if dim1 != None:
                 
-                m1_value = 1
-                m1 = 'const'+str(self.const_var_count)
-                self.insert_variable(m1,'int','const',value = m1_value)
-                self.const_var_count += 1
+                if dim2 == None:
 
-                index_1_addr = self.get_var_addr(index_1)
-                m1_addr = self.get_var_addr(m1)
+                    index_1 = 'const'+str(self.const_var_count)
+                    self.insert_variable(index_1,'int','const',value=dim1)
+                    self.const_var_count += 1
+                    
+                    m1_value = 1
+                    m1 = 'const'+str(self.const_var_count)
+                    self.insert_variable(m1,'int','const',value = m1_value)
+                    self.const_var_count += 1
 
-                dims.update({'m1':m1_addr,'index_1':index_1_addr})
-                
-            else:
-                index_1 = 'const'+str(self.const_var_count)
-                self.insert_variable(index_1,'int','const',value = dim1)
-                self.const_var_count += 1
+                    index_1_addr = self.get_var_addr(index_1)
+                    m1_addr = self.get_var_addr(m1)
 
-                m1_value = dim1 * dim2
-                m1 = 'const'+str(self.const_var_count)
-                self.insert_variable(m1,'int','const',value = m1_value)
-                self.const_var_count += 1
+                    dims.update({'m1':m1_addr,'index_1':index_1_addr})
+                    
+                else:
+                    index_1 = 'const'+str(self.const_var_count)
+                    self.insert_variable(index_1,'int','const',value = dim1)
+                    self.const_var_count += 1
 
-                index_2 = 'const'+str(self.const_var_count)
-                self.insert_variable(index_2,'int','const',value = dim2)
-                self.const_var_count += 1
+                    m1_value = dim1 * dim2
+                    m1 = 'const'+str(self.const_var_count)
+                    self.insert_variable(m1,'int','const',value = m1_value)
+                    self.const_var_count += 1
 
-                m2_value = 1
-                m2 = 'const'+str(self.const_var_count)
-                self.insert_variable(m2,'int','const',value = m2_value)
-                self.const_var_count += 1
+                    index_2 = 'const'+str(self.const_var_count)
+                    self.insert_variable(index_2,'int','const',value = dim2)
+                    self.const_var_count += 1
 
-                index_1_addr = self.get_var_addr(index_1)
-                m1_addr = self.get_var_addr(m1)
+                    m2_value = 1
+                    m2 = 'const'+str(self.const_var_count)
+                    self.insert_variable(m2,'int','const',value = m2_value)
+                    self.const_var_count += 1
 
-                index_2_addr = self.get_var_addr(index_2)
-                m2_addr = self.get_var_addr(m2)
+                    index_1_addr = self.get_var_addr(index_1)
+                    m1_addr = self.get_var_addr(m1)
 
-                dims.update({'m1':m1_addr,'m2':m2_addr,'index_1':index_1_addr,'index_2':index_2_addr})
+                    index_2_addr = self.get_var_addr(index_2)
+                    m2_addr = self.get_var_addr(m2)
+                    
+                    
+                    dims.update({'m1':m1_addr,'m2':m2_addr,'index_1':index_1_addr,'index_2':index_2_addr})
 
         
         try:
@@ -153,9 +159,30 @@ class Semantic():
                 self.memory_count[scope][variable_type] += 1
             else:
                 if dim2 != None:
-                    self.memory_count[scope][variable_type] += dim1 * dim2
+                    if arr_conf == None:
+                        self.memory_count[scope][variable_type] += dim1 * dim2
+                    else:
+                        key1 = self.get_const_value(arr_conf['index_1'])
+                        key2 = self.get_const_value(arr_conf['index_2'])
+
+                        value1 = self.variables_table[key1]['value']
+                        value2 = self.variables_table[key2]['value']
+
+                        self.memory_count[scope][variable_type] += value1 * value2
+
                 else:
-                    self.memory_count[scope][variable_type] += dim1
+                    if arr_conf == None:
+                        self.memory_count[scope][variable_type] += dim1
+                    else:
+                        key1 = self.get_const_value(arr_conf['index_1'])
+                        value1 = self.variables_table[key1]['value']
+
+                        self.memory_count[scope][variable_type] += value1
+
+                
+
+                        
+
 
         except KeyError as err:
 
@@ -318,6 +345,8 @@ class Semantic():
             except:
                 raise ValueError('No last temp value')
 
+        
+
         try:
             if self.get_value_type(operand_1) != 'var':
                 
@@ -338,36 +367,44 @@ class Semantic():
 
             raise TypeError(str(err))
 
-        operand_1_addr = self.get_var_addr(operand_1)
-        operand_2_addr = self.get_var_addr(operand_2)
-
-
         self.verify_arr_operation(operand_1,operand_2)
-                    
+
+        if self.is_arr(operand_1) and self.is_arr(operand_2):
+            if self.is_mat(operand_1) and self.is_mat(operand_2):
+               self.matrix_operation(operation,operand_1,operand_2)
+            else:
+                self.arr_operation(operation,operand_1,operand_2)
+
+        else:
         
-        if save_loc == None:
 
-            #operand_1_scope = self.get_var_scope((operand_1,operand_1_addr))
-            #operand_2_scope = self.get_var_scope((operand_2,operand_2_addr))
-            save_loc = 'temp'+str(self.temp_count)
-            temp_type = self.get_var_type(operation,(operand_1,operand_1_addr),(operand_2,operand_2_addr))
-            self.insert_variable(save_loc,temp_type,'temp')
-            new_var = (save_loc , self.memory_count['temp'][temp_type]-1)#the variable count has increase so take one from the memory count
-            newTemp = {new_var:{'type':temp_type}}
-            self.last_temp = newTemp
-            self.temp_count += 1
+            operand_1_addr = self.get_var_addr(operand_1)
+            operand_2_addr = self.get_var_addr(operand_2)
    
-        save_loc_addr = self.get_var_addr(save_loc)
+            
+            if save_loc == None:
 
-        try:
-            operand1_mem = operand_1_addr
-            operand2_mem = operand_2_addr
-            save_loc_mem = save_loc_addr
-            quadruple = {'operation': operation, 'operand_1': operand1_mem,
-                         'operand_2': operand2_mem, 'save_loc': save_loc_mem}
-            self.quadruples.append(quadruple)
-        except KeyError as err:
-            raise KeyError('Var  does not exists in table, ' + str(err))
+                #operand_1_scope = self.get_var_scope((operand_1,operand_1_addr))
+                #operand_2_scope = self.get_var_scope((operand_2,operand_2_addr))
+                save_loc = 'temp'+str(self.temp_count)
+                temp_type = self.get_var_type(operation,(operand_1,operand_1_addr),(operand_2,operand_2_addr))
+                self.insert_variable(save_loc,temp_type,'temp')
+                new_var = (save_loc , self.memory_count['temp'][temp_type]-1)#the variable count has increase so take one from the memory count
+                newTemp = {new_var:{'type':temp_type}}
+                self.last_temp = newTemp
+                self.temp_count += 1
+    
+            save_loc_addr = self.get_var_addr(save_loc)
+
+            try:
+                operand1_mem = operand_1_addr
+                operand2_mem = operand_2_addr
+                save_loc_mem = save_loc_addr
+                quadruple = {'operation': operation, 'operand_1': operand1_mem,
+                            'operand_2': operand2_mem, 'save_loc': save_loc_mem}
+                self.quadruples.append(quadruple)
+            except KeyError as err:
+                raise KeyError('Var  does not exists in table, ' + str(err))
 
     
     def verify_arr_operation(self,operand_1,operand_2):
@@ -554,6 +591,15 @@ class Semantic():
         except TypeError as err:
 
             raise TypeError(str(err))
+        
+
+        self.verify_arr_operation(save_loc,operand_1)
+
+        if self.is_arr(save_loc) and self.is_arr(operand_1):
+            if self.is_mat(save_loc) and self.is_mat(operand_1):
+               self.matrix_asignation(save_loc,operand_1)
+            else:
+                self.arr_asignation(save_loc,operand_1)
 
         operand_1_addr = self.get_var_addr(operand_1)
 
@@ -715,16 +761,30 @@ class Semantic():
                 operand_1_addr = list(self.last_temp.keys())[0][1]
             except:
                 raise ValueError('No last tmep value')
+
+        try:
+            if self.get_value_type(operand_1) != 'var':
+                
+                value = operand_1
+                type_1 = self.get_value_type(operand_1)
+                operand_1 = 'const'+str(self.const_var_count)
+                self.insert_variable(operand_1,type_1,'const',value=value)
+                self.const_var_count += 1
+
+
+        except TypeError as err:
+
+            raise TypeError(str(err))
         
         operand_1_addr = self.get_var_addr(operand_1)
 
-        save_loc = 'temp'+str(self.pointer_count)
+        save_loc = 'temp'+str(self.temp_count)
         temp_type = 'pointer'
         self.insert_variable(save_loc,temp_type,'temp',value=operand_1_addr)
         new_var = (save_loc , self.memory_count['temp'][temp_type]-1)#the variable count has increase so take one from the memory count
         newTemp = {new_var:{'type':temp_type}}
         self.last_temp = newTemp
-        self.pointer_count += 1
+        self.temp_count += 1
         save_loc_addr = self.get_var_addr(save_loc)
         
         base_name = 'base_'+arr 
@@ -750,6 +810,8 @@ class Semantic():
                 operand_1_addr = list(self.last_temp.keys())[0][1]
             except:
                 raise ValueError('No last tmep value')
+
+        
         
         operand_1_addr = self.get_var_addr(operand_1)
 
@@ -777,7 +839,21 @@ class Semantic():
                 operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
                 operand_1_addr = list(self.last_temp.keys())[0][1]
             except:
-                raise ValueError('No last tmep value')
+                raise ValueError('No last temp value')
+
+        try:
+            if self.get_value_type(operand_1) != 'var':
+                
+                value = operand_1
+                type_1 = self.get_value_type(operand_1)
+                operand_1 = 'const'+str(self.const_var_count)
+                self.insert_variable(operand_1,type_1,'const',value=value)
+                self.const_var_count += 1
+
+
+        except TypeError as err:
+
+            raise TypeError(str(err))
         
         operand_1_addr = self.get_var_addr(operand_1)
         dim1_addr = self.get_var_addr(dim1)
@@ -867,7 +943,7 @@ class Semantic():
         mat_type = self.get_variable_type(mat)
         key = (mat,mat_addr)
         try:
-            var_obj = self.variables_table[key]
+            var_obj = copy.deepcopy(self.variables_table[key])
 
         except KeyError:
             raise KeyError('Matrix not found')
@@ -875,8 +951,13 @@ class Semantic():
         index1 = var_obj['index_1']
         index2 = var_obj['index_2']
 
-        #self.insert_temp_mat(index2,index1,mat_type)
-        
+        var_obj['index_1'] = index2
+        var_obj['index_2'] = index1
+
+        temp_mat_key  = self.insert_temp_mat(mat_type,index1,index2,var_obj)
+        quadruple = {'operation':'transpose','operand_1':mat_addr,'operand_2':None,'save_loc':temp_mat_key[1]}
+        self.last_temp = {temp_mat_key:self.variables_table[temp_mat_key]}
+        self.quadruples.append(quadruple)
         
 
 
@@ -885,14 +966,18 @@ class Semantic():
         mat_type = self.get_variable_type(mat)
         key = (mat,mat_addr)
         try:
-            var_obj = self.variables_table[key]
+            var_obj = copy.deepcopy(self.variables_table[key])
         except KeyError:
             raise KeyError('Matrix not found')
 
         index1 = var_obj['index_1']
         index2 = var_obj['index_2']
+    
 
-        #self.insert_temp_mat(index1,index2,mat_type)
+        temp_mat_key  = self.insert_temp_mat(mat_type,index1,index2,var_obj)
+        quadruple = {'operation':'inverse','operand_1':mat_addr,'operand_2':None,'save_loc':temp_mat_key[1]}
+        self.last_temp = {temp_mat_key:self.variables_table[temp_mat_key]}
+        self.quadruples.append(quadruple)
 
 
 
@@ -901,7 +986,7 @@ class Semantic():
         mat_type = self.get_variable_type(mat)
         key = (mat,mat_addr)
         try:
-            var_obj = self.variables_table[key]
+            var_obj = copy.deepcopy(self.variables_table[key])
         except KeyError:
             raise KeyError('Matrix not found')
 
@@ -909,15 +994,103 @@ class Semantic():
         index2 = var_obj['index_2']
 
 
-    def insert_temp_mat(self,dim1,dim2,mat_type):
+        quadruple =  {'operation':'ver_dim','operand_1':index1,'operand_2':index2,'save_loc':None}
+        self.quadruples.append(quadruple)
+
+
+
+
+    def insert_temp_mat(self,mat_type,dim1=None, dim2=None,arr_conf=None):
 
         temp_mat = 'temp'+str(self.temp_count)
-        self.insert_variable(temp_mat,mat_type,'temp',False,dim1=dim1,dim2=dim2)
+        self.insert_variable(temp_mat,mat_type,'temp',param=False,dim1=dim1,dim2=dim2,arr_conf=arr_conf)
         temp_mat_addr = self.get_var_addr(temp_mat)
         newVar = (temp_mat,temp_mat_addr)
-        newTemp = self.variables_table[newVar]
-        self.last_temp = newTemp
         self.temp_count += 1
 
+        return newVar
+    
+
+    def matrix_operation(self,operation, mat_1, mat_2):
+        
+        mat_1_addr = self.get_var_addr(mat_1)
+        mat2_addr  = self.get_var_addr(mat_2)
+        mat1_type = self.get_variable_type(mat_1)
+        mat2_type = self.get_variable_type(mat_2)
+
+        try:
+            semantic_cube[mat1_type][operation][mat2_type]
+
+        except KeyError:
+
+            raise TypeError(f'Not compatible types for "{mat1_type}" and "{mat2_type}"')
+
+        key1 = (mat_1,mat_1_addr)
+        key2 = (mat_2,mat2_addr)
+        if operation not in self.supported_arr_op:
+            raise TypeError(f'Not supported operation "{operation}" for {mat_1} and {mat_2}')
+
+        try:
+            var_obj1 = copy.deepcopy(self.variables_table[key1])
+            var_obj2 = copy.deepcopy(self.variables_table[key2])
+        except KeyError:
+            raise KeyError('Matrix not found')
+
+        index1 = var_obj1['index_1']
+        index2 = var_obj2['index_2']
+
+        temp_mat_key  = self.insert_temp_mat(mat1_type,index1,index2,var_obj1)
+        quadruple =  {'operation':operation+'mat','operand_1':mat_1_addr,'operand_2':mat2_addr,'save_loc':temp_mat_key[1]}
+        self.last_temp = {temp_mat_key:self.variables_table[temp_mat_key]}
+        self.quadruples.append(quadruple)
 
 
+    def matrix_asignation(self, mat_1, mat_2):
+        
+        mat_1_addr = self.get_var_addr(mat_1)
+        mat2_addr  = self.get_var_addr(mat_2)
+        mat1_type = self.get_variable_type(mat_1)
+        mat2_type = self.get_variable_type(mat_2)
+
+        try:
+            semantic_cube[mat1_type]['='][mat2_type]
+
+        except KeyError:
+
+            raise TypeError(f'Not compatible types for "{mat1_type}" and "{mat2_type}"')
+
+        key1 = (mat_1,mat_1_addr)
+        key2 = (mat_2,mat2_addr)
+
+        try:
+            var_obj1 = copy.deepcopy(self.variables_table[key1])
+            var_obj2 = copy.deepcopy(self.variables_table[key2])
+        except KeyError:
+            raise KeyError('Matrix not found')
+
+
+
+        quadruple =  {'operation':'='+'mat','operand_1':mat2_addr,'operand_2':None,'save_loc':mat_1_addr}
+        self.quadruples.append(quadruple)
+
+
+
+    def arr_operation(self,operation, arr_1, arr_2):
+        
+        if operation not in self.supported_arr_op:
+            raise TypeError(f'Not supported operation "{operation}" for {arr_1} and {arr_2}')
+
+    
+    def arr_asignation(self, arr_1, arr_2):
+        
+        pass
+
+
+    def get_const_value(self,addr):
+
+        for name,addr_ in list(self.variables_table.keys()):
+
+            if addr_ == addr:
+                return (name,addr_)
+        
+        return None

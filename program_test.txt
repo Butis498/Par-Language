@@ -1,66 +1,23 @@
 program Ejemplo;
 var
-    int i,j,p;
-    int Arreglo[10];
-    float valor;
-    int Matrix[3][8];
-    char f;
-    
-
-module int fact (int l,bool f,int gol,char uuu)
-var int i,j;
-    char k;
-    bool o;
-    int Mat[3][8];
-    int Mat2[2][8];
-{i = j + (p - j*2+j);
-read(i);
-o = True;
-write(j+1);
-write(j+1,i);
-Mat2 = Mat + Matrix?;
-if (i == 1) then
-    {
-        if ( 3 +2 == 5) then{ return(i);}
-        read(i);
-        return (j);}
-    else
-    {   write(i,j);
-        
-        return (fact(i,i == 1,i,'f'));}
-    
-           
-}
-
-module void  inicia ()
-var int x;
-    char l;
-{ x=0;
-    l = 'l';
-    write(i);
-    while( x < 11) do
-    {
-        Arreglo[Arreglo[i+1]] = Arreglo[i+3 * 2] * Matrix[Arreglo[x]][x+i];
-        x = x + 1;
-        fact(i,i == 1,i,'f');
-    }
-    
-}
-
+    int Trans[10][5];
+    int Mat[10][5];
+    int Arr1[3];
+    int Arr2[5];
 main ()
 var
-    bool gg;
-{ 
-    for i = i +1 to 9 + j do{ i = i +1;
-        for i = i +1 to 9 + j do{
-            write(i);
-            write(i);
-            write(i);
-            read(i);
+    int dim1;
+    int dim2;
+    int i,j;
+
+{
+
+    for i = 0 to dim1 do{
+        for j = 0 to dim2 do{
+            Mat[6][8] = Trans[i][j];
+            write(Mat? + Trans);
         }
     }
-    
-    read(p); j = p *2;
-    inicia();
+    Mat = Mat + Mat!;
 
 }
