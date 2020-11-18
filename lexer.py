@@ -94,7 +94,7 @@ class MyLexer(object):
     # Error handling rule
     def t_error(self, t):
         raise KeyError("Illegal character '%s'" % t.value[0])
-        t.lexer.skip(1)
+        #t.lexer.skip(1)
 
        # Build the lexer
     

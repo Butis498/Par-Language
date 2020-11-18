@@ -453,14 +453,22 @@ class MyParser(object):
         '''
         if p[3] == None: # is a single element
 
-            if not self.semantic.is_arr(p[1]) and p[2] != None:
-                raise KeyError("Wrong usage of modifier")
+            if not self.semantic.is_mat(p[1]) and p[2] != None:
+                raise KeyError("Wrong usage of modifier in a not matrix variable")
 
-            p[0] = p[1]
+            if p[2] != None:
+                arr_to_mod = self.current_arr[-1]
+                mod = p[2]
+                self.semantic.apply_modifier(arr_to_mod,mod)
+                p[0] = list(self.semantic.last_temp.keys())[0][0]
+            else:
+                p[0] = p[1]
         else:
             if p[2] != None:
                 raise KeyError("Wrong usage of modifier")
             p[0] = list(self.semantic.last_temp.keys())[0][0]
+
+        
         self.current_arr.pop(-1)
 
     def p_expression_param_mod(self,p):
@@ -468,6 +476,7 @@ class MyParser(object):
         param_mod : modifier
                   | empty
         '''
+            
         p[0] = p[1]
 
     def p_expression_param_id(self,p):

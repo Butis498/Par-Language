@@ -342,6 +342,39 @@ class Semantic():
         operand_2_addr = self.get_var_addr(operand_2)
 
 
+        self.verify_arr_operation(operand_1,operand_2)
+                    
+        
+        if save_loc == None:
+
+            #operand_1_scope = self.get_var_scope((operand_1,operand_1_addr))
+            #operand_2_scope = self.get_var_scope((operand_2,operand_2_addr))
+            save_loc = 'temp'+str(self.temp_count)
+            temp_type = self.get_var_type(operation,(operand_1,operand_1_addr),(operand_2,operand_2_addr))
+            self.insert_variable(save_loc,temp_type,'temp')
+            new_var = (save_loc , self.memory_count['temp'][temp_type]-1)#the variable count has increase so take one from the memory count
+            newTemp = {new_var:{'type':temp_type}}
+            self.last_temp = newTemp
+            self.temp_count += 1
+   
+        save_loc_addr = self.get_var_addr(save_loc)
+
+        try:
+            operand1_mem = operand_1_addr
+            operand2_mem = operand_2_addr
+            save_loc_mem = save_loc_addr
+            quadruple = {'operation': operation, 'operand_1': operand1_mem,
+                         'operand_2': operand2_mem, 'save_loc': save_loc_mem}
+            self.quadruples.append(quadruple)
+        except KeyError as err:
+            raise KeyError('Var  does not exists in table, ' + str(err))
+
+    
+    def verify_arr_operation(self,operand_1,operand_2):
+
+        operand_1_addr = self.get_var_addr(operand_1)
+        operand_2_addr = self.get_var_addr(operand_2)
+
         if self.is_arr(operand_1) and self.is_arr(operand_2):
             
             if self.same_dims(operand_1,operand_2):
@@ -381,32 +414,6 @@ class Semantic():
             else:
 
                 raise TypeError('Not compatible operation with matrix or array')
-            
-        
-        if save_loc == None:
-
-            #operand_1_scope = self.get_var_scope((operand_1,operand_1_addr))
-            #operand_2_scope = self.get_var_scope((operand_2,operand_2_addr))
-            save_loc = 'temp'+str(self.temp_count)
-            temp_type = self.get_var_type(operation,(operand_1,operand_1_addr),(operand_2,operand_2_addr))
-            self.insert_variable(save_loc,temp_type,'temp')
-            new_var = (save_loc , self.memory_count['temp'][temp_type]-1)#the variable count has increase so take one from the memory count
-            newTemp = {new_var:{'type':temp_type}}
-            self.last_temp = newTemp
-            self.temp_count += 1
-   
-        save_loc_addr = self.get_var_addr(save_loc)
-
-        try:
-            operand1_mem = operand_1_addr
-            operand2_mem = operand_2_addr
-            save_loc_mem = save_loc_addr
-            quadruple = {'operation': operation, 'operand_1': operand1_mem,
-                         'operand_2': operand2_mem, 'save_loc': save_loc_mem}
-            self.quadruples.append(quadruple)
-        except KeyError as err:
-            raise KeyError('Var  does not exists in table, ' + str(err))
-
 
 
 
@@ -552,6 +559,7 @@ class Semantic():
 
         validation_type_1 = self.variables_table[(operand_1,operand_1_addr)]['type']
         
+        
 
         if save_loc == None:
   
@@ -568,6 +576,9 @@ class Semantic():
 
         if validation_type_1 != validation_type_2:
             raise TypeError(f'Incompatible Types {validation_type_1} and {validation_type_2}')
+
+        self.verify_arr_operation(operand_1,save_loc)
+
 
         quadruple = {'operation': '=', 'operand_1': operand_1_addr,
                         'operand_2': None, 'save_loc': save_loc_addr}
@@ -838,3 +849,75 @@ class Semantic():
             return False
 
         return True
+
+    def apply_modifier(self,mat,mod):
+        
+        if mod == '?':
+            self.inverse_modify(mat)
+        elif mod == '!':
+            self.transpose_modify(mat)
+        elif mod == '$':
+            self.determinant_modify(mat)
+        else:
+            raise KeyError('modifier not found')
+
+    def transpose_modify(self,mat):
+        
+        mat_addr = self.get_var_addr(mat)
+        mat_type = self.get_variable_type(mat)
+        key = (mat,mat_addr)
+        try:
+            var_obj = self.variables_table[key]
+
+        except KeyError:
+            raise KeyError('Matrix not found')
+
+        index1 = var_obj['index_1']
+        index2 = var_obj['index_2']
+
+        #self.insert_temp_mat(index2,index1,mat_type)
+        
+        
+
+
+    def inverse_modify(self,mat):
+        mat_addr = self.get_var_addr(mat)
+        mat_type = self.get_variable_type(mat)
+        key = (mat,mat_addr)
+        try:
+            var_obj = self.variables_table[key]
+        except KeyError:
+            raise KeyError('Matrix not found')
+
+        index1 = var_obj['index_1']
+        index2 = var_obj['index_2']
+
+        #self.insert_temp_mat(index1,index2,mat_type)
+
+
+
+    def determinant_modify(self,mat):
+        mat_addr = self.get_var_addr(mat)
+        mat_type = self.get_variable_type(mat)
+        key = (mat,mat_addr)
+        try:
+            var_obj = self.variables_table[key]
+        except KeyError:
+            raise KeyError('Matrix not found')
+
+        index1 = var_obj['index_1']
+        index2 = var_obj['index_2']
+
+
+    def insert_temp_mat(self,dim1,dim2,mat_type):
+
+        temp_mat = 'temp'+str(self.temp_count)
+        self.insert_variable(temp_mat,mat_type,'temp',False,dim1=dim1,dim2=dim2)
+        temp_mat_addr = self.get_var_addr(temp_mat)
+        newVar = (temp_mat,temp_mat_addr)
+        newTemp = self.variables_table[newVar]
+        self.last_temp = newTemp
+        self.temp_count += 1
+
+
+
