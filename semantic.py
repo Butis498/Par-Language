@@ -22,36 +22,37 @@ class Semantic():
         self.func_call_stack = []
         self.pointer_count = 0
         
-
-
+    
         self.variables_base_memory = {
 
             'global': {'int': self.asign_memory_base(),
                        'float': self.asign_memory_base(),
                        'char': self.asign_memory_base(),
-                       'bool': self.asign_memory_base()},
+                       'bool': self.asign_memory_base(),
+                       'pointer':self.asign_memory_base()},
 
             'local': {'int': self.asign_memory_base(),
                       'float': self.asign_memory_base(),
                       'char': self.asign_memory_base(),
-                      'bool': self.asign_memory_base()},
+                      'bool': self.asign_memory_base(),
+                      'pointer':self.asign_memory_base()},
 
             'temp': {'int': self.asign_memory_base(),
                      'float': self.asign_memory_base(),
                      'char': self.asign_memory_base(),
-                     'bool': self.asign_memory_base()},
+                     'bool': self.asign_memory_base(),
+                     'pointer':self.asign_memory_base()},
 
             'const': {'int': self.asign_memory_base(),
                       'float': self.asign_memory_base(),
                       'char': self.asign_memory_base(),
-                      'bool': self.asign_memory_base()},
+                      'bool': self.asign_memory_base(),
+                      'pointer':self.asign_memory_base()}
 
-            'pointer': {'int': self.asign_memory_base(),
-                      'float': self.asign_memory_base(),
-                      'char': self.asign_memory_base(),
-                      'bool': self.asign_memory_base()}
         }
         self.memory_count = copy.deepcopy(self.variables_base_memory)
+        self.insert_variable('const'+str(self.const_var_count),'int','const',value=0)
+        self.const_var_count += 1
 
     def asign_memory_base(self):
 
@@ -72,7 +73,7 @@ class Semantic():
 
         except KeyError as err:
 
-            print('No memory type found, ' + str(err))
+            raise TypeError('No memory type found, ' + str(err))
 
     def insert_variable(self, variable_name, variable_type, scope, param=False, dim1=None,dim2=None,value=None):
 
@@ -161,8 +162,8 @@ class Semantic():
             raise KeyError('Can not insert variable, ' + str(err))
 
     def get_func_memory_usage(self):
-        res = {'temp':{'int':0,'float':0,'char':0,'bool':0},
-                'local':{'int':0,'float':0,'char':0,'bool':0}}
+        res = {'temp':{'int':0,'float':0,'char':0,'bool':0,'pointer':0},
+                'local':{'int':0,'float':0,'char':0,'bool':0,'pointer':0}}
 
         
 
@@ -201,7 +202,6 @@ class Semantic():
                 raise ValueError('No last temp value')
         
         try:
-            print(self.get_value_type(save_loc),save_loc,'-------------------------------------')
             if self.get_value_type(operand_1) != 'var':
                 
                 type_1 = self.get_value_type(operand_1)
@@ -227,7 +227,6 @@ class Semantic():
         quadruple = {'operation': 'param', 'operand_1': operand_1_addr,
                     'operand_2': None, 'save_loc': save_loc_addr}
 
-        print(quadruple)
         self.quadruples.append(quadruple)
 
     def verify_params_num(self):
@@ -248,7 +247,6 @@ class Semantic():
 
     def get_curr_param_addr(self,func):
 
-        print(self.functions_table)
 
         era = self.get_era(func)
         try:
@@ -283,13 +281,12 @@ class Semantic():
         try:
 
             memory_usage = self.get_func_memory_usage()
-            print(memory_usage)
             params_table = copy.deepcopy(self.variables_table_func)
             self.functions_table[function_name]['params']= params_table
             self.variables_table_func.clear()
         except KeyError as err:
 
-            print('Can not update function, ' + str(err))
+            raise TypeError('Can not update function, ' + str(err))
 
 
     def update_func_memory(self, function_name):
@@ -298,17 +295,15 @@ class Semantic():
         try:
 
             memory_usage = self.get_func_memory_usage()
-            print(memory_usage)
             self.functions_table[function_name]['memory_usage']= memory_usage
             self.variables_table_func.clear()
         except KeyError as err:
 
-            print('Can not update function, ' + str(err))
+            raise TypeError('Can not update function, ' + str(err))
 
 
     def insert_quadruple_operation(self, operation, operand_1=None, operand_2=None, save_loc=None):
 
-        print(operation,operand_1,operand_2,save_loc)
         if operand_1 == None:
             try:
                 operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
@@ -371,7 +366,6 @@ class Semantic():
         except KeyError as err:
             raise KeyError('Var  does not exists in table, ' + str(err))
 
-        print(quadruple)
 
 
 
@@ -489,12 +483,10 @@ class Semantic():
             quadruple = {'operation': action, 'operand_1': operand_1_addr,
                             'operand_2': None, 'save_loc': None}
 
-            print(quadruple)
             self.quadruples.append(quadruple)
     
     def insert_quadruple_asignation(self,save_loc,operand_1=None):
         
-        print('=',operand_1,save_loc)
         if operand_1 == None:
             try:
                 operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
@@ -539,13 +531,11 @@ class Semantic():
         quadruple = {'operation': '=', 'operand_1': operand_1_addr,
                         'operand_2': None, 'save_loc': save_loc_addr}
 
-        print(quadruple)
         self.quadruples.append(quadruple)
 
 
     def insert_quadruple_goto(self,quadruple_num=None,operand_1=None,goto_type=None):
 
-        print(quadruple_num,operand_1,goto_type)
         if operand_1 == None and goto_type != None:
             try:
                 operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
@@ -573,7 +563,6 @@ class Semantic():
 
         
         quadruple = {'operation':goto,'operand_1':operand_1_addr,'operand_2':None,'save_loc':quadruple_num}
-        print(quadruple) 
         self.quadruples.append(quadruple)
         self.goto_quadruples_stack.append(self.quadruples[-1])
 
@@ -600,12 +589,22 @@ class Semantic():
                     return type_var
 
     def print_quadruples(self):
-        cont = 0
-        for quadruple in self.quadruples:
+
+        print('============ Quadruples table =============')
+        for cont,quadruple in zip(range(0,len(self.quadruples)),self.quadruples):
             print(cont,quadruple)
             cont += 1
 
-        print(self.variables_table)
+        print('============ Variables table =============')
+        for var in self.variables_table.keys():
+            print(var,self.variables_table[var])
+
+        print('============ Functions table =============')
+        for func in self.functions_table.keys():
+            print(func,self.functions_table[func])
+
+
+
 
 
     def insert_ver_quadruple(self,arr_name,operand_1=None,dim1=True):
@@ -649,8 +648,10 @@ class Semantic():
 
             raise IndexError('Wrong index in array' + str(err))
 
+        base_0 = 'const0'
+        base_0_addr = self.get_var_addr(base_0)
 
-        quadruple = {'operation':'ver','operand_1':operand_1_addr,'operand_2':0,'save_loc':index}
+        quadruple = {'operation':'ver','operand_1':operand_1_addr,'operand_2':base_0_addr,'save_loc':index}
         self.quadruples.append(quadruple)
 
 
@@ -665,17 +666,26 @@ class Semantic():
         
         operand_1_addr = self.get_var_addr(operand_1)
 
-        save_loc = 'pointer'+str(self.pointer_count)
-        temp_type = 'int'
-        self.insert_variable(save_loc,temp_type,'pointer',value=operand_1_addr)
-        new_var = (save_loc , self.memory_count['pointer'][temp_type]-1)#the variable count has increase so take one from the memory count
+        save_loc = 'temp'+str(self.pointer_count)
+        temp_type = 'pointer'
+        self.insert_variable(save_loc,temp_type,'temp',value=operand_1_addr)
+        new_var = (save_loc , self.memory_count['temp'][temp_type]-1)#the variable count has increase so take one from the memory count
         newTemp = {new_var:{'type':temp_type}}
         self.last_temp = newTemp
         self.pointer_count += 1
         save_loc_addr = self.get_var_addr(save_loc)
-
+        
+        base_name = 'base_'+arr 
         base = self.get_var_addr(arr)
-        quadruple = {'operation':'+','operand_1':base,'operand_2':operand_1_addr,'save_loc':save_loc_addr}
+        try: 
+            self.insert_variable('base_'+arr ,temp_type,'const',value=base)
+            base_addr = self.get_var_addr(base_name)
+        except KeyError:
+            pass
+
+        base_addr = self.get_var_addr(base_name)
+            
+        quadruple = {'operation':'+','operand_1':base_addr,'operand_2':operand_1_addr,'save_loc':save_loc_addr}
 
         
         self.quadruples.append(quadruple)
@@ -729,7 +739,7 @@ class Semantic():
         self.temp_count += 1
         save_loc_addr = self.get_var_addr(save_loc)
 
-        base = self.get_var_addr(arr)
+
         quadruple = {'operation':'+','operand_1':dim1_addr,'operand_2':operand_1_addr,'save_loc':save_loc_addr}
 
         

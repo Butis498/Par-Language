@@ -48,7 +48,6 @@ class MyParser(object):
         '''
         vars1 : type vars2
         '''
-        print(self.dims_stack)
         for var in self.variables_stack:
             dim_1 = self.dims_stack[-1]
             self.dims_stack.pop(-1)
@@ -73,7 +72,6 @@ class MyParser(object):
         '''
         end_func : MODULE func_dec LPAREN functions2 RPAREN functions5 update_params block
         '''
-        print(self.semantic.current_func,self.semantic.variables_table_func , "=====================")
         
         self.semantic.update_func_memory(self.semantic.current_func)
         self.semantic.insert_func_quadruple(operation='endfunc')
@@ -327,7 +325,6 @@ class MyParser(object):
         '''
         return : RETURN  LPAREN expression detect_asignation RPAREN SEMICOLONS
         '''
-        print('return',p[3])
         self.semantic.insert_quadruple_action(p[1],p[3])
         try:
             self.semantic.insert_quadruple_asignation(self.semantic.current_func,p[3])

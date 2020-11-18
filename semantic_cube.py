@@ -123,5 +123,22 @@ semantic_cube = {
         '!=': {
             'char': 'bool'
         }
+    },
+
+    'pointer':{
+        '=':{
+            'pointer':'pointer'
+        },
+        '+':{
+            'int':'pointer',
+            'pointer':'pointer'
+        },
+        '-':{
+            'int':'pointer',
+        },
+        '*':{
+            'int':'pointer',
+            'pointer':'pointer'
+        }
     }
 }
