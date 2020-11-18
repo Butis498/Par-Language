@@ -340,6 +340,47 @@ class Semantic():
 
         operand_1_addr = self.get_var_addr(operand_1)
         operand_2_addr = self.get_var_addr(operand_2)
+
+
+        if self.is_arr(operand_1) and self.is_arr(operand_2):
+            
+            if self.same_dims(operand_1,operand_2):
+
+                key1 = (operand_1,operand_1_addr)
+                key2 = (operand_2,operand_2_addr)
+
+                try:
+                    if self.is_mat(operand_1) and self.is_mat(operand_2):
+                        index1 = self.variables_table[key1]['index_1']
+                        index2 = self.variables_table[key2]['index_1']
+
+                        index1_2 = self.variables_table[key1]['index_2']
+                        index2_2 = self.variables_table[key2]['index_2']
+
+                        index1_comp =  {'operation': 'ver_dim', 'operand_1': index1,
+                                        'operand_2': index2, 'save_loc': None}
+
+                        index2_comp =  {'operation': 'ver_dim', 'operand_1': index1_2,
+                                        'operand_2': index2_2, 'save_loc': None}
+
+                        self.quadruples.append(index1_comp)
+                        self.quadruples.append(index2_comp)
+                    else:
+                        index1 = self.variables_table[key1]['index_1']
+                        index2 = self.variables_table[key2]['index_1']
+
+                        index1_comp =  {'operation': 'ver_dim', 'operand_1': index1,
+                                        'operand_2': index2, 'save_loc': None}
+
+                        self.quadruples.append(index1_comp)
+
+                except KeyError as err:
+
+                    raise ValueError('Array not found',str(err))
+                
+            else:
+
+                raise TypeError('Not compatible operation with matrix or array')
             
         
         if save_loc == None:
@@ -744,3 +785,56 @@ class Semantic():
 
         
         self.quadruples.append(quadruple)           
+
+
+    def is_arr(self,arr_name):
+
+        arr_addr = self.get_var_addr(arr_name)
+        key = (arr_name,arr_addr)
+        m1 = 'm1'
+
+        if m1 in list(self.variables_table[key].keys()) :
+
+            return True
+        else :
+
+            return False
+
+    def is_mat(self,mat_name):
+
+        arr_addr = self.get_var_addr(mat_name)
+        key = (mat_name,arr_addr)
+        m1 = 'm1'
+        m2 = 'm2'
+
+        if m1 in list(self.variables_table[key].keys()) and m2 in list(self.variables_table[key].keys()) :
+
+            return True
+        else :
+
+            return False
+
+    def same_dims(self,arr_1,arr_2):
+
+        arr_1_addr = self.get_var_addr(arr_1)
+        arr_2_addr = self.get_var_addr(arr_2)
+
+        var1 = (arr_1,arr_1_addr)
+        var2 = (arr_2,arr_2_addr)
+
+
+        try:
+            var1_obj = self.variables_table[var1]
+            var2_obj = self.variables_table[var2]
+
+        except KeyError as err:
+            raise KeyError('Array not found',str(err))
+        
+
+        var1_keys = list(var1_obj.keys())
+        var2_keys = list(var2_obj.keys())
+
+        if len(var1_keys) != len(var2_keys):
+            return False
+
+        return True

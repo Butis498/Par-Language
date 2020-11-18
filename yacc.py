@@ -449,14 +449,26 @@ class MyParser(object):
 
     def p_expression_param(self,p):
         '''
-        param : param_id param1
+        param : param_id param_mod param1
         '''
-        if p[2] == None:
+        if p[3] == None: # is a single element
+
+            if not self.semantic.is_arr(p[1]) and p[2] != None:
+                raise KeyError("Wrong usage of modifier")
+
             p[0] = p[1]
         else:
+            if p[2] != None:
+                raise KeyError("Wrong usage of modifier")
             p[0] = list(self.semantic.last_temp.keys())[0][0]
         self.current_arr.pop(-1)
-        
+
+    def p_expression_param_mod(self,p):
+        '''
+        param_mod : modifier
+                  | empty
+        '''
+        p[0] = p[1]
 
     def p_expression_param_id(self,p):
         '''
@@ -623,6 +635,14 @@ class MyParser(object):
         '''
         p[0] = p[1]
 
+    def p_expression_modifier(self,p):
+        '''
+        modifier : TRANSPOSE
+                 | DETERMINANT
+                 | INVERSE
+        '''
+        p[0] = p[1]
+
     def parse(self,inputString):
         #r = MyLexer()
         #r.printTokens(inputString)
@@ -631,7 +651,7 @@ class MyParser(object):
 
     # Error rule for syntax errors
     def p_error(self,p):
-        print("Syntax error in input!")
+        raise SystemError("Syntax error in input!")
 
     def __init__(self):
         self.lexer = MyLexer().build()
