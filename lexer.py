@@ -12,6 +12,7 @@ class MyLexer(object):
             'int' : 'INT',
             'float': 'FLOAT',
             'char': 'CHAR',
+            'bool': 'BOOL',
             'var' : 'VAR',
             'program':'PROGRAM',
             'void' : 'VOID',
@@ -24,14 +25,17 @@ class MyLexer(object):
             'for' : 'FOR',
             'to' : 'TO',
             'return' : 'RETURN',
-            'then' : 'THEN'
+            'then' : 'THEN',
+            'True' : 'TRUE',
+            'False' : 'FASLE'
             }
 
     tokens = (
         'INUM','FNUM','PLUS','MINUS','TIMES','DIVIDE','LPAREN','RPAREN','ID','SEMICOLONS','COMA',
         'RBRACKET','LBRACKET','GREATERTHAN','MINORTHAN','IF','ELSE', 'EQUAL','INT','FLOAT',
         'VAR','PROGRAM','STRING','CHAR','RCURLYBRACKET','LCURLYBRACKET','MAIN', 'WRITE','MODULE','READ',
-        'DO' , 'WHILE', 'FOR','TO','RETURN', 'VOID','AND','OR', 'EQUALS','THEN'
+        'DO' , 'WHILE', 'FOR','TO','RETURN', 'VOID','AND','OR', 'EQUALS','THEN','CCHAR','BOOL','TRUE','FALSE','TRANSPOSE',
+        'INVERSE','DETERMINANT' 
     ) 
 
         
@@ -55,7 +59,11 @@ class MyLexer(object):
     t_EQUALS = r'\=\='
     t_AND = r'\&'
     t_OR = r'\|'
-    t_STRING = r'"([A-Za-z]|[0-9])*"'
+    t_TRANSPOSE = r'\!'
+    t_DETERMINANT = r'\$'
+    t_INVERSE = r'\?'
+    t_CCHAR = r"'([A-Za-z]|[0-9])'"
+    t_STRING= r'"([A-Za-z]|[0-9])*"'
 
     
     # A regular expression rule with some action code
@@ -85,8 +93,8 @@ class MyLexer(object):
     
     # Error handling rule
     def t_error(self, t):
-        print("Illegal character '%s'" % t.value[0])
-        t.lexer.skip(1)
+        raise KeyError("Illegal character '%s'" % t.value[0])
+        #t.lexer.skip(1)
 
        # Build the lexer
     

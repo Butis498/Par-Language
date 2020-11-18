@@ -1,6 +1,4 @@
 Esteban Salazar
 Adrian Gonzalez
 
-El proyecto ya tiene definido tanto el lexico como la gramatica, cuenta con numeros , Ids , y todos los tokens necesarios
-Se implemento en modo de clases para facilitar futuras partes del proyecto.
-Se creo el cubo semantico para la funcionalidad del compilador.
+En este avance sew agrego la produccion de quadruplos de funciones con validacin de tipos y ruturns para cada funcion se probo la recursividad y funciono correctamente
