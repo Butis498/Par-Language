@@ -1,32 +1,29 @@
 program Ejemplo;
 var
-    int Trans[10][5];
-    int Mat[10][5];
-    int Arr1[3];
-    int Arr2[5];
+    int i,j,p;
 
-module int fact(int i,int h)
-var
-    int j,k;
-    bool m;
+module int fact (int l)
+var int i,j;
 {
-    write(j,m,k);
-    k = 333;
+if (i == 1) then
+    {
+        if ( 3 +2 == 5) then{ return(i);}
+        read(i);
+        return (j);}
+    else
+    {   write(i,j);
+        return (j* fact(j-1));}
+
+if (i == 1) then
+    {
+        if ( 3 +2 == 5) then{ return(i);}
+        read(i);
+        return (j);}
+
 }
 main ()
-var
-    int dim1;
-    int dim2;
-    int i,j;
-
-{
-
-    for i = 0 to dim1 do{
-        for j = 0 to dim2 do{
-            write(Mat? + Trans);
-        }
-    }
-    Mat = Mat? + Mat;
-    Arr1 = Arr1 + Arr1;
+var 
+    int i,l;
+{ 
 
 }

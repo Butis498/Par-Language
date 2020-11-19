@@ -591,7 +591,7 @@ class Semantic():
                     operand_1_addr = list(self.last_temp.keys())[0][1]
 
                 except:
-                    raise ValueError('No last temp value for action type ')
+                    raise ValueError('No last temp value for action type')
             else:
 
                 try:
@@ -621,7 +621,7 @@ class Semantic():
                 operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
                 operand_1_addr = list(self.last_temp.keys())[0][1]
             except:
-                raise ValueError('No last tmep value')
+                raise ValueError('No last temp value')
         
         try:
             if self.get_value_type(operand_1) != 'var':
@@ -664,7 +664,9 @@ class Semantic():
         save_loc_addr = self.get_var_addr(save_loc)
         validation_type_2 = self.variables_table[(save_loc,save_loc_addr)]['type']
 
-        if validation_type_1 != validation_type_2:
+        try:
+            semantic_cube[validation_type_1]['='][validation_type_2]
+        except:
             raise TypeError(f'Incompatible Types {validation_type_1} and {validation_type_2}')
 
         self.verify_arr_operation(operand_1,save_loc)

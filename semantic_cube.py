@@ -2,19 +2,22 @@ semantic_cube = {
     'int': {
         '+': {
             'int': 'int',
-            'float': 'float'
+            'float': 'float',
+            'pointer': 'pointer'
         },
         '-': {
             'int': 'int',
-            'float': 'float'
+            'float': 'float',
+            'pointer': 'pointer'
         },
         '=': {
             'int': 'int',
-            'float': 'int'
+            'pointer': 'pointer'
         },
         '*': {
             'int': 'int',
-            'float': 'float'
+            'float': 'float',
+            'pointer': 'pointer'
         },
         '/': {
             'int': 'int',
@@ -127,6 +130,7 @@ semantic_cube = {
 
     'pointer':{
         '=':{
+            'int':'pointer',
             'pointer':'pointer'
         },
         '+':{
@@ -134,7 +138,7 @@ semantic_cube = {
             'pointer':'pointer'
         },
         '-':{
-            'int':'pointer',
+            'int':'pointer'
         },
         '*':{
             'int':'pointer',
