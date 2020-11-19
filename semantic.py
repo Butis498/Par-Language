@@ -23,6 +23,7 @@ class Semantic():
         self.pointer_count = 0
         self.supported_arr_op = ['+','-','*']
         self.program_id = ''
+        self.param_dec_count = 0
         
     
         self.variables_base_memory = {
@@ -261,15 +262,18 @@ class Semantic():
 
         self.quadruples.append(quadruple)
 
-    def verify_params_num(self):
-        params_number = len(self.get_era(self.func_call_stack[-1]))
-        params_give = self.param_count
-        if params_number != params_give:
-            raise IndexError('Missing Params in function '+ str(self.func_call_stack[-1]) )
-
+    
     def get_era(self,func):
         try:
-            params =  list(reversed(list(self.functions_table[func]['params'])))
+            
+            params =  []
+            keys = []
+
+            for key in self.functions_table[func]['params'].keys():
+                keys.append(key)
+
+            for key in range(0,self.functions_table[func]['param_cont']):
+                params.append(keys[key])
 
         except KeyError as err:
 
@@ -277,15 +281,22 @@ class Semantic():
 
         return params
 
+    def verify_params_num(self):
+        params_number = len(self.get_era(self.func_call_stack[-1]))
+        params_give = self.param_count
+        if params_number != params_give:
+            raise IndexError('Missing Params in function '+ str(self.func_call_stack[-1]) )
+
     def get_curr_param_addr(self,func):
 
 
         era = self.get_era(func)
+        print(era,func)
         try:
-            curret_param  = era[self.param_count]
+            current_param  = era[self.param_count]
         except IndexError:
             raise IndexError('Too many arguments in function '+func)
-        var = curret_param[1]
+        var = current_param[1]
         return var
 
 
@@ -297,7 +308,7 @@ class Semantic():
         self.quadruples.append(quadruple)
 
 
-    def insert_func(self,function_name,function_type):
+    def insert_func(self,function_name,function_type,init):
         
         if function_name in self.functions_table.keys():
             raise KeyError("Function " + function_name + " already exists")
@@ -310,11 +321,11 @@ class Semantic():
             
             self.functions_table[self.program_id]['params'].update({glob_var_key:new_glob_var})
 
-        function = {function_name: {'type': function_type,'memory_usage':None ,'params':None}}
+        function = {function_name: {'type': function_type,'memory_usage':None ,'params':None,'init':init}}
         self.functions_table.update(function)
 
 
-    def update_func(self, function_name):
+    def update_func(self, function_name,param_count):
 
 
         try:
@@ -324,6 +335,7 @@ class Semantic():
 
             params_table = copy.deepcopy(self.variables_table_func)
             self.functions_table[function_name]['params']= params_table
+            self.functions_table[function_name]['param_cont']= param_count
 
             func_variables = []
 
@@ -337,9 +349,6 @@ class Semantic():
                     addr = self.get_var_addr(func)
                     del self.functions_table[function_name]['params'][(var,addr)]
                 
-
-
-
 
             self.variables_table_func.clear()
         except KeyError as err:
@@ -440,8 +449,12 @@ class Semantic():
     
     def verify_arr_operation(self,operand_1,operand_2):
 
+        if operand_1 == None or operand_2 == None:
+            return
+        
         operand_1_addr = self.get_var_addr(operand_1)
         operand_2_addr = self.get_var_addr(operand_2)
+
 
         if self.is_arr(operand_1) and self.is_arr(operand_2):
             
@@ -922,9 +935,13 @@ class Semantic():
 
     def is_arr(self,arr_name):
 
-        arr_addr = self.get_var_addr(arr_name)
-        key = (arr_name,arr_addr)
-        m1 = 'm1'
+        try:
+
+            arr_addr = self.get_var_addr(arr_name)
+            key = (arr_name,arr_addr)
+            m1 = 'm1'
+        except:
+            return False
 
         if m1 in list(self.variables_table[key].keys()) :
 
@@ -935,10 +952,14 @@ class Semantic():
 
     def is_mat(self,mat_name):
 
-        arr_addr = self.get_var_addr(mat_name)
-        key = (mat_name,arr_addr)
-        m1 = 'm1'
-        m2 = 'm2'
+        try:
+            arr_addr = self.get_var_addr(mat_name)
+            key = (mat_name,arr_addr)
+            m1 = 'm1'
+            m2 = 'm2'
+        
+        except:
+            return False
 
         if m1 in list(self.variables_table[key].keys()) and m2 in list(self.variables_table[key].keys()) :
 

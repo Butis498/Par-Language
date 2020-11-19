@@ -22,7 +22,7 @@ class MyParser(object):
         '''
         self.semantic.current_func = p[1]
         self.semantic.program_id = p[1]
-        self.semantic.insert_func(p[1],'void')
+        self.semantic.insert_func(p[1],'void',0)
        
     def p_expression_start_goto(self,p):
         '''
@@ -36,7 +36,7 @@ class MyParser(object):
                  | empty
         '''
         self.current_scope = 'local'
-        self.semantic.update_func(self.semantic.current_func)
+        self.semantic.update_func(self.semantic.current_func,0)
 
     def p_expression_program3(self,p):
         '''
@@ -58,10 +58,11 @@ class MyParser(object):
         vars1 : type vars2
         '''
         for var in self.variables_stack:
-            dim_1 = self.dims_stack[-1]
-            self.dims_stack.pop(-1)
-            dim_2 = self.dims_stack[-1]
-            self.dims_stack.pop(-1)
+            dim_1 = self.dims_stack[0]
+            self.dims_stack.pop(0)
+            dim_2 = self.dims_stack[0]
+            self.dims_stack.pop(0)
+            print(var,dim_1,dim_2)
             self.semantic.insert_variable(var,p[1],self.current_scope,dim1=dim_1,dim2=dim_2)
         self.variables_stack.clear()
 
@@ -69,7 +70,7 @@ class MyParser(object):
         '''
         vars2 : var vars3
         '''
-        self.variables_stack.append(p[1])
+        self.variables_stack.insert(0,p[1])
 
     def p_expression_functions(self,p):
         '''
@@ -90,13 +91,14 @@ class MyParser(object):
         '''
         update_params : empty
         '''
-        self.semantic.update_func(self.semantic.current_func)
+        self.semantic.update_func(self.semantic.current_func,self.semantic.param_dec_count)
+        self.semantic.param_dec_count = 0
 
     def p_asignation_func_dec(self,p):
         '''
         func_dec : functions1 func_name
         '''
-        self.semantic.insert_func(p[2],p[1])
+        self.semantic.insert_func(p[2],p[1],len(self.semantic.quadruples))
 
     def p_expression_functions1(self,p):
         '''
@@ -132,6 +134,7 @@ class MyParser(object):
         '''
         if p[1] != None:
             self.semantic.insert_variable(p[2],p[1],'local',True)
+            self.semantic.param_dec_count += 1
 
     
         
@@ -360,10 +363,10 @@ class MyParser(object):
              | empty
         '''
         if p[1] != None:
-            self.dims_stack.append(p[2])
+            self.dims_stack.insert(0,p[2])
         else:
-            self.dims_stack.append(None)
-            self.dims_stack.append(None)
+            self.dims_stack.insert(0,None)
+            self.dims_stack.insert(0,None)
             p[0] = None
 
     def p_expression_var2(self,p):
@@ -372,9 +375,9 @@ class MyParser(object):
              | empty
         '''
         if p[1] != None:
-            self.dims_stack.append(p[2])
+            self.dims_stack.insert(0,p[2])
         else:
-            self.dims_stack.append(None)
+            self.dims_stack.insert(0,None)
             p[0] = None
 
     def p_expression_call(self,p):
@@ -393,10 +396,8 @@ class MyParser(object):
         end_params : empty
         '''
         self.semantic.insert_gosub_quadruple(self.semantic.func_call_stack[-1])
-        try:
-            self.semantic.insert_quadruple_asignation(None,self.semantic.func_call_stack[-1])
-        except KeyError:
-            pass
+        self.semantic.insert_quadruple_asignation(None,self.semantic.func_call_stack[-1])
+        
         
     def p_expression_call1(self,p):
         '''
@@ -526,7 +527,7 @@ class MyParser(object):
         '''
         
         self.semantic.insert_times_quadruple(self.current_arr[-1],p[1])
-        self.dims_stack.append('temp'+str(self.semantic.temp_count-1))
+        self.dims_stack.insert(0,'temp'+str(self.semantic.temp_count-1))
 
 
     def p_expression_ver_dim1(self,p):
