@@ -1,5 +1,6 @@
 from semantic_cube import semantic_cube
 import copy
+import json
 
 
 class Semantic():
@@ -24,6 +25,8 @@ class Semantic():
         self.supported_arr_op = ['+','-','*']
         self.program_id = ''
         self.param_dec_count = 0
+        self.param_stack = []
+        self.current_arr = []
         
     
         self.variables_base_memory = {
@@ -109,7 +112,7 @@ class Semantic():
                     self.insert_variable(index_1,'int','const',value = dim1)
                     self.const_var_count += 1
 
-                    m1_value = dim1
+                    m1_value = dim2
                     m1 = 'const'+str(self.const_var_count)
                     self.insert_variable(m1,'int','const',value = m1_value)
                     self.const_var_count += 1
@@ -143,6 +146,18 @@ class Semantic():
 
             variable = {new_variable: {'type': variable_type}}
 
+            if variable_type == 'pointer':
+                
+                arr_base_addr = self.get_var_addr(self.current_arr[-1])
+                print('=== last',self.current_arr[-1])
+                last_temp_type = self.get_addr_type(arr_base_addr)
+                pointer_type = {'pointer_type':last_temp_type}
+                variable[new_variable].update(pointer_type)
+
+                print(variable)
+
+
+            
             
             self.variables_table.update(variable)
             self.variables_table[new_variable].update(dims)
@@ -428,7 +443,7 @@ class Semantic():
                 #operand_1_scope = self.get_var_scope((operand_1,operand_1_addr))
                 #operand_2_scope = self.get_var_scope((operand_2,operand_2_addr))
                 save_loc = 'temp'+str(self.temp_count)
-                temp_type = self.get_var_type(operation,(operand_1,operand_1_addr),(operand_2,operand_2_addr))
+                temp_type,is_pointer = self.get_var_type(operation,(operand_1,operand_1_addr),(operand_2,operand_2_addr))
                 self.insert_variable(save_loc,temp_type,'temp')
                 new_var = (save_loc , self.memory_count['temp'][temp_type]-1)#the variable count has increase so take one from the memory count
                 newTemp = {new_var:{'type':temp_type}}
@@ -513,15 +528,25 @@ class Semantic():
 
 
     def get_var_type(self,operation, var1,var2):
+        is_pointer = False
         try:
             type_1 = self.variables_table[var1]['type']
+
+            if type_1 == 'pointer':
+                type_1 = self.variables_table[var1]['pointer_type']
+                is_pointer = True
+
             type_2 = self.variables_table[var2]['type']
+
+            if type_2 == 'pointer':
+                type_2 = self.variables_table[var1]['pointer_type']
+                is_pointer = True
         except KeyError as err:
             raise KeyError(str(err) + ' does not exists')
 
         try:
             type_res_var = semantic_cube[type_1][operation][type_2]
-            return type_res_var
+            return type_res_var,is_pointer
         except KeyError :
             raise TypeError('Not supported type for operands '+ var1[0] + ' and ' + var2[0])
 
@@ -663,6 +688,8 @@ class Semantic():
 
         validation_type_1 = self.variables_table[(operand_1,operand_1_addr)]['type']
         
+        if validation_type_1 == 'pointer':
+            validation_type_1 = self.variables_table[(operand_1,operand_1_addr)]['pointer_type']
         
 
         if save_loc == None:
@@ -678,7 +705,14 @@ class Semantic():
         save_loc_addr = self.get_var_addr(save_loc)
         validation_type_2 = self.variables_table[(save_loc,save_loc_addr)]['type']
 
+        if validation_type_2 == 'pointer':
+            validation_type_2 = self.variables_table[(save_loc,save_loc_addr)]['pointer_type']
+
         try:
+            print("validation ",validation_type_1,validation_type_2)
+            print(self.variables_table[(operand_1,operand_1_addr)])
+            print((save_loc,save_loc_addr),self.variables_table[(save_loc,save_loc_addr)])
+            
             semantic_cube[validation_type_1]['='][validation_type_2]
         except:
             raise TypeError(f'Incompatible Types {validation_type_1} and {validation_type_2}')
@@ -746,6 +780,23 @@ class Semantic():
                 if base <= addr <= top:
                     return type_var
 
+    def key_to_json(self,data):
+        if data is None or isinstance(data, (bool, int, str)):
+            return data
+        if isinstance(data, (tuple, frozenset)):
+            return str(data)
+        raise TypeError
+
+    def to_json(self,data):
+        if data is None or isinstance(data, (bool, int, tuple, range, str, list)):
+            return data
+        if isinstance(data, (set, frozenset)):
+            return sorted(data)
+        if isinstance(data, dict):
+            return {self.key_to_json(key): self.to_json(data[key]) for key in data}
+        raise TypeError
+
+
     def print_quadruples(self):
 
         print('============ Quadruples table =============')
@@ -755,12 +806,20 @@ class Semantic():
 
         print('============ Variables table =============')
         for var in self.variables_table.keys():
-            print(var,self.variables_table[var])
+            print(var,json.dumps(self.variables_table[var],sort_keys=True,
+                                                            indent=4,
+                                                            separators=(',', ': ')))
 
         print('============ Functions table =============')
         for func in self.functions_table.keys():
-            print(func,self.functions_table[func])
+            print(func,json.dumps(self.to_json(self.functions_table[func]),sort_keys=True,
+                                                            indent=4,
+                                                            separators=(',', ': ')))
 
+        print('============ Base Variables table =============')
+        print(json.dumps(self.variables_base_memory,sort_keys=True,
+                                                            indent=4,
+                                                            separators=(',', ': ')))
 
 
 
@@ -771,6 +830,7 @@ class Semantic():
             try:
                 operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
                 operand_1_addr = list(self.last_temp.keys())[0][1]
+                
             except:
                 raise ValueError('No last temp value')
         
@@ -790,6 +850,7 @@ class Semantic():
         operand_1_addr = self.get_var_addr(operand_1)
         var_addr = self.get_var_addr(arr_name)
         var = (arr_name,var_addr)
+        
 
         try:
             base = self.get_var_addr(arr_name)
@@ -1086,12 +1147,18 @@ class Semantic():
         mat1_type = self.get_variable_type(mat_1)
         mat2_type = self.get_variable_type(mat_2)
 
+        if mat1_type == 'pointer':
+            mat1_type_val = self.variables_table[(mat_1,mat_1_addr)]['pointer_type']
+
+        if mat2_type == 'pointer':
+            mat2_type_val = self.variables_table[(mat_2,mat2_addr)]['pointer_type']
+
         try:
             semantic_cube[mat1_type][operation][mat2_type]
 
         except KeyError:
 
-            raise TypeError(f'Not compatible types for "{mat1_type}" and "{mat2_type}"')
+            raise TypeError(f'Not compatible types for "{mat1_type_val}" and "{mat2_type_val}"')
 
         key1 = (mat_1,mat_1_addr)
         key2 = (mat_2,mat2_addr)
@@ -1150,16 +1217,30 @@ class Semantic():
         self.quadruples.append(quadruple)
 
 
-
-    def arr_operation(self,operation, arr_1, arr_2):
-        
-        if operation not in self.supported_arr_op:
-            raise TypeError(f'Not supported operation "{operation}" for {arr_1} and {arr_2}')
-
     
-    def arr_asignation(self, arr_1, arr_2):
+    def check_exp_type(self, operand_1):
         
-        pass
+        if operand_1 == None:
+            try:
+                operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
+                operand_1_addr = list(self.last_temp.keys())[0][1]
+            except:
+                raise ValueError('No last temp value')
+
+        try:
+            if self.get_value_type(operand_1) != 'var':
+                
+                value = operand_1
+                type_1 = self.get_value_type(operand_1)
+                return type_1
+
+
+        except TypeError as err:
+
+            raise TypeError(str(err))
+        
+        operand_1_addr = self.get_var_addr(operand_1)
+        return self.get_addr_type(operand_1_addr)
 
 
     def get_const_value(self,addr):

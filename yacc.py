@@ -472,7 +472,7 @@ class MyParser(object):
                 raise KeyError("Wrong usage of modifier in a not matrix variable")
 
             if p[2] != None:
-                arr_to_mod = self.current_arr[-1]
+                arr_to_mod = self.semantic.current_arr[-1]
                 mod = p[2]
                 self.semantic.apply_modifier(arr_to_mod,mod)
                 p[0] = list(self.semantic.last_temp.keys())[0][0]
@@ -484,7 +484,7 @@ class MyParser(object):
             p[0] = list(self.semantic.last_temp.keys())[0][0]
 
         
-        self.current_arr.pop(-1)
+        self.semantic.current_arr.pop(-1)
 
     def p_expression_param_mod(self,p):
         '''
@@ -499,7 +499,7 @@ class MyParser(object):
         param_id : ID
         '''
         p[0] = p[1]
-        self.current_arr.append(p[1])
+        self.semantic.current_arr.append(p[1])
 
     def p_expression_param1(self,p):
         '''
@@ -508,7 +508,7 @@ class MyParser(object):
         '''
         if p[1] != None:
             if p[4] == None:
-                self.semantic.insert_plus_quadruple(self.current_arr[-1],p[2])
+                self.semantic.insert_plus_quadruple(self.semantic.current_arr[-1],p[2])
 
         p[0] = p[1]
 
@@ -520,8 +520,8 @@ class MyParser(object):
         if p[1] != None:
             s1_times_m1 = self.dims_stack[-1]
             self.dims_stack.pop(-1)
-            self.semantic.insert_plus_quadruple_dim2(self.current_arr[-1],p[3],s1_times_m1)
-            self.semantic.insert_plus_quadruple(self.current_arr[-1])
+            self.semantic.insert_plus_quadruple_dim2(self.semantic.current_arr[-1],p[3],s1_times_m1)
+            self.semantic.insert_plus_quadruple(self.semantic.current_arr[-1])
             p[0] = p[1]
             
 
@@ -530,7 +530,7 @@ class MyParser(object):
         two_detect : empty
         '''
         
-        self.semantic.insert_times_quadruple(self.current_arr[-1],p[1])
+        self.semantic.insert_times_quadruple(self.semantic.current_arr[-1],p[1])
         self.dims_stack.insert(0,'temp'+str(self.semantic.temp_count-1))
 
 
@@ -538,8 +538,12 @@ class MyParser(object):
         '''
         ver_dim1 : expression 
         '''
-        curr_arr_name = self.current_arr[-1]
+        curr_arr_name = self.semantic.current_arr[-1]
         self.semantic.insert_ver_quadruple(curr_arr_name,p[1])
+
+        if self.semantic.check_exp_type(p[1]) != 'int':
+            raise TypeError('Not int index')
+        
         p[0] = p[1]
             
 
@@ -547,8 +551,12 @@ class MyParser(object):
         '''
         ver_dim2 : expression 
         '''
-        curr_arr_name = self.current_arr[-1]
+        curr_arr_name = self.semantic.current_arr[-1]
         self.semantic.insert_ver_quadruple(curr_arr_name,p[1],False)
+
+        if self.semantic.check_exp_type(p[1]) != 'int':
+            raise TypeError('Not int index')
+
         p[0] = p[1]
       
 
@@ -668,8 +676,8 @@ class MyParser(object):
         p[0] = p[1]
 
     def parse(self,inputString):
-        r = MyLexer()
-        r.printTokens(inputString)
+        #r = MyLexer()
+        #r.printTokens(inputString)
         self.parser.parse(input=inputString,lexer=self.lexer,debug=False)
         
 
@@ -685,6 +693,5 @@ class MyParser(object):
         self.current_scope = 'global'
         self.variables_stack  = []
         self.dims_stack = []
-        self.current_arr = []
 
 

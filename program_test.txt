@@ -22,7 +22,6 @@ var int x;
     write(i);
     while( x < 11) do
     {
-        Arreglo[x] = i * x;
         x = x + 1;
     }
 
@@ -40,5 +39,6 @@ var
             write(i);
         }
     }
+    Arreglo[1+i] = 1;
 
 }
