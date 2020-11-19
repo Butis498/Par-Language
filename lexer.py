@@ -27,7 +27,7 @@ class MyLexer(object):
             'return' : 'RETURN',
             'then' : 'THEN',
             'True' : 'TRUE',
-            'False' : 'FASLE'
+            'False' : 'FALSE'
             }
 
     tokens = (
