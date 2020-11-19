@@ -31,7 +31,7 @@ class MyLexer(object):
             }
 
     tokens = (
-        'INUM','FNUM','PLUS','MINUS','TIMES','DIVIDE','LPAREN','RPAREN','ID','SEMICOLONS','COMA',
+        'FNUM','INUM','PLUS','MINUS','TIMES','DIVIDE','LPAREN','RPAREN','ID','SEMICOLONS','COMA',
         'RBRACKET','LBRACKET','GREATERTHAN','MINORTHAN','IF','ELSE', 'EQUAL','INT','FLOAT',
         'VAR','PROGRAM','STRING','CHAR','RCURLYBRACKET','LCURLYBRACKET','MAIN', 'WRITE','MODULE','READ',
         'DO' , 'WHILE', 'FOR','TO','RETURN', 'VOID','AND','OR', 'EQUALS','THEN','CCHAR','BOOL','TRUE','FALSE','TRANSPOSE',
@@ -67,20 +67,22 @@ class MyLexer(object):
 
     
     # A regular expression rule with some action code
-    def t_INUM(self, t):
-        r'[0-9]+'
-        t.value = int(t.value)    
-        return t
+    
 
     def t_FNUM(self, t):
-        r'[0-9]+(\.[0-9]+)?'
-        t.value = int(t.value)    
+        r'[0-9]+(\.([0-9]+)?([eE][-+]?[0-9]+)?|[eE][-+]?[0-9]+)'
+        t.value = float(t.value)
         return t
 
     def t_ID(self, t):
         r'[A-Za-z]([A-Za-z]|[0-9])*'
         if t.value in self.reserved:
             t.type = self.reserved[ t.value ]
+        return t
+
+    def t_INUM(self, t):
+        r'\d+'
+        t.value = int(t.value)    
         return t
     
     # Define a rule so we can track line numbers
@@ -94,7 +96,7 @@ class MyLexer(object):
     # Error handling rule
     def t_error(self, t):
         raise KeyError("Illegal character '%s'" % t.value[0])
-        #t.lexer.skip(1)
+        t.lexer.skip(1)
 
        # Build the lexer
     

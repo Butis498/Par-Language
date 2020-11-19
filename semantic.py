@@ -237,9 +237,10 @@ class Semantic():
         try:
             if self.get_value_type(operand_1) != 'var':
                 
+                value = operand_1
                 type_1 = self.get_value_type(operand_1)
                 operand_1 = 'const'+str(self.const_var_count)
-                self.insert_variable(operand_1,type_1,'const')
+                self.insert_variable(operand_1,type_1,'const',value=value)
                 self.const_var_count += 1
 
         except TypeError as err:
@@ -290,7 +291,7 @@ class Semantic():
     def get_curr_param_addr(self,func):
 
 
-        era = self.get_era(func)
+        era = list(reversed(self.get_era(func)))
         print(era,func)
         try:
             current_param  = era[self.param_count]

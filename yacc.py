@@ -396,7 +396,11 @@ class MyParser(object):
         end_params : empty
         '''
         self.semantic.insert_gosub_quadruple(self.semantic.func_call_stack[-1])
-        self.semantic.insert_quadruple_asignation(None,self.semantic.func_call_stack[-1])
+
+        func_type = self.semantic.functions_table[self.semantic.func_call_stack[-1]]['type']
+
+        if func_type != 'void':
+            self.semantic.insert_quadruple_asignation(None,self.semantic.func_call_stack[-1])
         
         
     def p_expression_call1(self,p):
@@ -664,8 +668,8 @@ class MyParser(object):
         p[0] = p[1]
 
     def parse(self,inputString):
-        #r = MyLexer()
-        #r.printTokens(inputString)
+        r = MyLexer()
+        r.printTokens(inputString)
         self.parser.parse(input=inputString,lexer=self.lexer,debug=False)
         
 

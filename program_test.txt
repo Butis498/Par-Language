@@ -1,31 +1,46 @@
 program Ejemplo;
 var
     int i,j,p;
-    int Arr[10];
+    float valor;
+   int Arreglo[10];
 
-module int fact (int l)
-var int i,j;
-    int Arr2[12];
-{
-if (i == 1) then
-    {
-        if ( 3 +2 == 5) then{ return(i);}
-        read(i);
-        return (j);}
-    else
-    {   write(i,j);
-        return (j* fact(j-1));}
+module int fact (int j)
+var int i;
+    char l;
+{ i = j + (p-j*2+j);
+if (j == 1 ) then
+{return (j);}
+else
+{return (j * fact (j-1));}
+}
 
-if (i == 1) then
+module void  inicia (int j, int h, float u)
+var int x;
+    char l;
+{ x=0;
+    l = 'l';
+    write(i);
+    while( x < 11) do
     {
-        if ( 3 +2 == 5) then{ return(i);}
-        read(i);
-        return (j);}
+        Arreglo[x] = i * x;
+        x = x + 1;
+    }
 
 }
+
+
+
 main ()
 var 
     int i,l;
 { 
+    inicia (2, 1, 3.4);
+    for i = i +1 to 9 + j do{ i = i +1;
+        for i = i +1 to 9 + j do{
+            write(i);
+            write(i);
+            write(i);
+        }
+    }
 
 }
