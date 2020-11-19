@@ -22,6 +22,7 @@ class Semantic():
         self.func_call_stack = []
         self.pointer_count = 0
         self.supported_arr_op = ['+','-','*']
+        self.program_id = ''
         
     
         self.variables_base_memory = {
@@ -107,7 +108,7 @@ class Semantic():
                     self.insert_variable(index_1,'int','const',value = dim1)
                     self.const_var_count += 1
 
-                    m1_value = dim1 * dim2
+                    m1_value = dim1
                     m1 = 'const'+str(self.const_var_count)
                     self.insert_variable(m1,'int','const',value = m1_value)
                     self.const_var_count += 1
@@ -149,7 +150,11 @@ class Semantic():
                 value_const = {'value':value}
                 self.variables_table[new_variable].update(value_const)
 
-            if param:
+            base_temp,top_temp = self.get_range('temp')
+            base_const,top_const = self.get_range('const')
+            base_glob,top_glob = self.get_range('global')
+
+            if param or new_variable[1] not in range(base_temp,top_temp) and new_variable[1] not in range(base_const,top_const):
                 self.variables_table_func.update(variable)
 
             if self.memory_count[scope][variable_type] >= top:
@@ -296,8 +301,15 @@ class Semantic():
         
         if function_name in self.functions_table.keys():
             raise KeyError("Function " + function_name + " already exists")
+
         if function_type != 'void':
             self.insert_variable(function_name,function_type,'global')
+            
+            glob_var_key =(function_name,self.get_var_addr(function_name))
+            new_glob_var = self.variables_table[glob_var_key]
+            
+            self.functions_table[self.program_id]['params'].update({glob_var_key:new_glob_var})
+
         function = {function_name: {'type': function_type,'memory_usage':None ,'params':None}}
         self.functions_table.update(function)
 
@@ -306,10 +318,29 @@ class Semantic():
 
 
         try:
+            base_glob,top_glob = self.get_range('global')
 
             memory_usage = self.get_func_memory_usage()
+
             params_table = copy.deepcopy(self.variables_table_func)
             self.functions_table[function_name]['params']= params_table
+
+            func_variables = []
+
+            for func in list(self.functions_table.keys()):
+                func_variables.append(func)
+
+            for var,addr in list(self.functions_table[function_name]['params'].keys()):
+
+                if var in func_variables:
+
+                    addr = self.get_var_addr(func)
+                    del self.functions_table[function_name]['params'][(var,addr)]
+                
+
+
+
+
             self.variables_table_func.clear()
         except KeyError as err:
 
@@ -373,7 +404,7 @@ class Semantic():
             if self.is_mat(operand_1) and self.is_mat(operand_2):
                self.matrix_operation(operation,operand_1,operand_2)
             else:
-                self.arr_operation(operation,operand_1,operand_2)
+                self.matrix_operation(operation,operand_1,operand_2,True)
 
         else:
         
@@ -436,6 +467,12 @@ class Semantic():
                         self.quadruples.append(index1_comp)
                         self.quadruples.append(index2_comp)
                     else:
+
+                        if self.is_mat(operand_1) and self.is_arr(operand_2):
+                            raise TypeError('Incompatible operation')
+
+                        if self.is_arr(operand_1) and self.is_mat(operand_2):
+                            raise TypeError('Incompatible operation')
                         index1 = self.variables_table[key1]['index_1']
                         index2 = self.variables_table[key2]['index_1']
 
@@ -451,7 +488,14 @@ class Semantic():
             else:
 
                 raise TypeError('Not compatible operation with matrix or array')
+        
+        else:
 
+            if self.is_arr(operand_1) and not self.is_arr(operand_2):
+                raise TypeError(f'Incompatible operation "{operand_1}" and "{operand_2}"')
+
+            if not self.is_arr(operand_1) and self.is_arr(operand_2):
+                raise TypeError(f'Incompatible operation "{operand_1}" and "{operand_2}"')
 
 
     def get_var_type(self,operation, var1,var2):
@@ -599,7 +643,7 @@ class Semantic():
             if self.is_mat(save_loc) and self.is_mat(operand_1):
                self.matrix_asignation(save_loc,operand_1)
             else:
-                self.arr_asignation(save_loc,operand_1)
+                self.matrix_asignation(save_loc,operand_1,True)
 
         operand_1_addr = self.get_var_addr(operand_1)
 
@@ -1011,7 +1055,7 @@ class Semantic():
         return newVar
     
 
-    def matrix_operation(self,operation, mat_1, mat_2):
+    def matrix_operation(self,operation, mat_1, mat_2, arr=False):
         
         mat_1_addr = self.get_var_addr(mat_1)
         mat2_addr  = self.get_var_addr(mat_2)
@@ -1037,15 +1081,21 @@ class Semantic():
             raise KeyError('Matrix not found')
 
         index1 = var_obj1['index_1']
-        index2 = var_obj2['index_2']
+        index2 = None
+        if arr == False:
+            index2 = var_obj2['index_2']
+
+        type_op = 'mat'
+        if arr == True:
+            type_op = 'arr'
 
         temp_mat_key  = self.insert_temp_mat(mat1_type,index1,index2,var_obj1)
-        quadruple =  {'operation':operation+'mat','operand_1':mat_1_addr,'operand_2':mat2_addr,'save_loc':temp_mat_key[1]}
+        quadruple =  {'operation':operation+ type_op,'operand_1':mat_1_addr,'operand_2':mat2_addr,'save_loc':temp_mat_key[1]}
         self.last_temp = {temp_mat_key:self.variables_table[temp_mat_key]}
         self.quadruples.append(quadruple)
 
 
-    def matrix_asignation(self, mat_1, mat_2):
+    def matrix_asignation(self, mat_1, mat_2,arr=False):
         
         mat_1_addr = self.get_var_addr(mat_1)
         mat2_addr  = self.get_var_addr(mat_2)
@@ -1068,9 +1118,11 @@ class Semantic():
         except KeyError:
             raise KeyError('Matrix not found')
 
+        type_op = 'mat'
+        if arr == True:
+            type_op = 'arr'
 
-
-        quadruple =  {'operation':'='+'mat','operand_1':mat2_addr,'operand_2':None,'save_loc':mat_1_addr}
+        quadruple =  {'operation':'='+type_op,'operand_1':mat2_addr,'operand_2':None,'save_loc':mat_1_addr}
         self.quadruples.append(quadruple)
 
 

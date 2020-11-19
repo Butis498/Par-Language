@@ -4,6 +4,15 @@ var
     int Mat[10][5];
     int Arr1[3];
     int Arr2[5];
+
+module int fact(int i,int h)
+var
+    int j,k;
+    bool m;
+{
+    write(j,m,k);
+    k = 333;
+}
 main ()
 var
     int dim1;
@@ -14,10 +23,10 @@ var
 
     for i = 0 to dim1 do{
         for j = 0 to dim2 do{
-            Mat[6][8] = Trans[i][j];
             write(Mat? + Trans);
         }
     }
-    Mat = Mat + Mat!;
+    Mat = Mat? + Mat;
+    Arr1 = Arr1 + Arr1;
 
 }
