@@ -62,7 +62,6 @@ class MyParser(object):
             self.dims_stack.pop(0)
             dim_2 = self.dims_stack[0]
             self.dims_stack.pop(0)
-            print(var,dim_1,dim_2)
             self.semantic.insert_variable(var,p[1],self.current_scope,dim1=dim_1,dim2=dim_2)
         self.variables_stack.clear()
 
@@ -281,7 +280,7 @@ class MyParser(object):
         '''
         
         if p[2] == None:
-            last_temp = list(self.semantic.last_temp.keys())[0][0]
+            last_temp = list(self.semantic.last_temp[-1].keys())[0][0]
         else:
             last_temp = p[2]
 
@@ -301,7 +300,7 @@ class MyParser(object):
         
        
         if p[3] == None:
-            last_temp = list(self.semantic.last_temp.keys())[0][0]
+            last_temp = list(self.semantic.last_temp[-1].keys())[0][0]
         else:
             last_temp = p[3]
         
@@ -475,13 +474,13 @@ class MyParser(object):
                 arr_to_mod = self.semantic.current_arr[-1]
                 mod = p[2]
                 self.semantic.apply_modifier(arr_to_mod,mod)
-                p[0] = list(self.semantic.last_temp.keys())[0][0]
+                p[0] = list(self.semantic.last_temp[-1].keys())[0][0]
             else:
                 p[0] = p[1]
         else:
             if p[2] != None:
                 raise KeyError("Wrong usage of modifier")
-            p[0] = list(self.semantic.last_temp.keys())[0][0]
+            p[0] = list(self.semantic.last_temp[-1].keys())[0][0]
 
         
         self.semantic.current_arr.pop(-1)
@@ -518,8 +517,8 @@ class MyParser(object):
                | empty
         '''
         if p[1] != None:
-            s1_times_m1 = self.dims_stack[-1]
-            self.dims_stack.pop(-1)
+            s1_times_m1 = list(self.semantic.last_temp[-1].keys())[0][0]
+            self.semantic.last_temp.pop(-1)            
             self.semantic.insert_plus_quadruple_dim2(self.semantic.current_arr[-1],p[3],s1_times_m1)
             self.semantic.insert_plus_quadruple(self.semantic.current_arr[-1])
             p[0] = p[1]
@@ -529,7 +528,7 @@ class MyParser(object):
         '''
         two_detect : empty
         '''
-        
+        #print(self.semantic.last_temp)
         self.semantic.insert_times_quadruple(self.semantic.current_arr[-1],p[1])
         self.dims_stack.insert(0,'temp'+str(self.semantic.temp_count-1))
 
@@ -676,8 +675,8 @@ class MyParser(object):
         p[0] = p[1]
 
     def parse(self,inputString):
-        #r = MyLexer()
-        #r.printTokens(inputString)
+        r = MyLexer()
+        r.printTokens(inputString)
         self.parser.parse(input=inputString,lexer=self.lexer,debug=False)
         
 

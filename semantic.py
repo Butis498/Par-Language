@@ -12,7 +12,7 @@ class Semantic():
         self.functions_table = {}
         self.jumps_stack = [0]
         self.quadruples = []
-        self.last_temp = {}
+        self.last_temp = []
         self.temp_count = 0
         self.const_var_count = 0
         self.goto_quadruples_stack = []
@@ -149,22 +149,21 @@ class Semantic():
             if variable_type == 'pointer':
                 
                 arr_base_addr = self.get_var_addr(self.current_arr[-1])
-                print('=== last',self.current_arr[-1])
                 last_temp_type = self.get_addr_type(arr_base_addr)
                 pointer_type = {'pointer_type':last_temp_type}
                 variable[new_variable].update(pointer_type)
 
-                print(variable)
 
 
             
-            
+            self.last_temp.append(variable)
             self.variables_table.update(variable)
             self.variables_table[new_variable].update(dims)
 
             if scope == 'const' and value != None:
                 value_const = {'value':value}
                 self.variables_table[new_variable].update(value_const)
+                self.last_temp.pop(-1)
 
             base_temp,top_temp = self.get_range('temp')
             base_const,top_const = self.get_range('const')
@@ -244,8 +243,10 @@ class Semantic():
 
         if operand_1 == None:
             try:
-                operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
-                operand_1_addr = list(self.last_temp.keys())[0][1]
+                operand_1 = list(self.last_temp[-1].keys())[0][0] # first item of dict and firt item of tuple which is var name
+                operand_1_addr = list(self.last_temp[-1].keys())[0][1]
+                self.last_temp.pop(-1)
+
             except:
                 raise ValueError('No last temp value')
         
@@ -307,7 +308,6 @@ class Semantic():
 
 
         era = list(reversed(self.get_era(func)))
-        print(era,func)
         try:
             current_param  = era[self.param_count]
         except IndexError:
@@ -387,17 +387,23 @@ class Semantic():
 
     def insert_quadruple_operation(self, operation, operand_1=None, operand_2=None, save_loc=None):
 
+
         if operand_1 == None:
             try:
-                operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
-                operand_1_addr = list(self.last_temp.keys())[0][1]
+
+                operand_1 = list(self.last_temp[-1].keys())[0][0] # first item of dict and firt item of tuple which is var name
+                operand_1_addr = list(self.last_temp[-1].keys())[0][1]
+                self.last_temp.pop(-1)
+                
             except:
                 raise ValueError('No last temp value')
 
         if operand_2 == None:
             try:
-                operand_2 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
-                operand_2_addr = list(self.last_temp.keys())[0][1]
+                operand_2 = list(self.last_temp[-1].keys())[0][0] # first item of dict and firt item of tuple which is var name
+                operand_2_addr = list(self.last_temp[-1].keys())[0][1]
+                self.last_temp.pop(-1)
+
             except:
                 raise ValueError('No last temp value')
 
@@ -443,11 +449,12 @@ class Semantic():
                 #operand_1_scope = self.get_var_scope((operand_1,operand_1_addr))
                 #operand_2_scope = self.get_var_scope((operand_2,operand_2_addr))
                 save_loc = 'temp'+str(self.temp_count)
+            
                 temp_type,is_pointer = self.get_var_type(operation,(operand_1,operand_1_addr),(operand_2,operand_2_addr))
                 self.insert_variable(save_loc,temp_type,'temp')
                 new_var = (save_loc , self.memory_count['temp'][temp_type]-1)#the variable count has increase so take one from the memory count
                 newTemp = {new_var:{'type':temp_type}}
-                self.last_temp = newTemp
+                #self.last_temp.append(newTemp)
                 self.temp_count += 1
     
             save_loc_addr = self.get_var_addr(save_loc)
@@ -472,7 +479,9 @@ class Semantic():
         operand_2_addr = self.get_var_addr(operand_2)
 
 
+
         if self.is_arr(operand_1) and self.is_arr(operand_2):
+
             
             if self.same_dims(operand_1,operand_2):
 
@@ -529,6 +538,7 @@ class Semantic():
 
     def get_var_type(self,operation, var1,var2):
         is_pointer = False
+
         try:
             type_1 = self.variables_table[var1]['type']
 
@@ -626,8 +636,8 @@ class Semantic():
         if type(action) == str:
             if operand_1 == None:
                 try:
-                    operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
-                    operand_1_addr = list(self.last_temp.keys())[0][1]
+                    operand_1 = list(self.last_temp[-1].keys())[0][0] # first item of dict and firt item of tuple which is var name
+                    operand_1_addr = list(self.last_temp[-1].keys())[0][1]
 
                 except:
                     raise ValueError('No last temp value for action type')
@@ -657,8 +667,10 @@ class Semantic():
         
         if operand_1 == None:
             try:
-                operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
-                operand_1_addr = list(self.last_temp.keys())[0][1]
+                operand_1 = list(self.last_temp[-1].keys())[0][0] # first item of dict and firt item of tuple which is var name
+                operand_1_addr = list(self.last_temp[-1].keys())[0][1]
+                self.last_temp.pop(-1)
+                
             except:
                 raise ValueError('No last temp value')
         
@@ -699,7 +711,7 @@ class Semantic():
             self.insert_variable(save_loc,temp_type,'temp')
             new_var = (save_loc , self.memory_count['temp'][temp_type]-1)#the variable count has increase so take one from the memory count
             newTemp = {new_var:{'type':temp_type}}
-            self.last_temp = newTemp
+            #self.last_temp.append(newTemp)
             self.temp_count += 1
 
         save_loc_addr = self.get_var_addr(save_loc)
@@ -709,9 +721,6 @@ class Semantic():
             validation_type_2 = self.variables_table[(save_loc,save_loc_addr)]['pointer_type']
 
         try:
-            print("validation ",validation_type_1,validation_type_2)
-            print(self.variables_table[(operand_1,operand_1_addr)])
-            print((save_loc,save_loc_addr),self.variables_table[(save_loc,save_loc_addr)])
             
             semantic_cube[validation_type_1]['='][validation_type_2]
         except:
@@ -730,8 +739,9 @@ class Semantic():
 
         if operand_1 == None and goto_type != None:
             try:
-                operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
-                operand_1_addr = list(self.last_temp.keys())[0][1]
+                operand_1 = list(self.last_temp[-1].keys())[0][0] # first item of dict and firt item of tuple which is var name
+                operand_1_addr = list(self.last_temp[-1].keys())[0][1]
+                self.last_temp.pop(-1)
                            
             except:
                 raise ValueError('No last temp value')
@@ -828,8 +838,9 @@ class Semantic():
 
         if operand_1 == None:
             try:
-                operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
-                operand_1_addr = list(self.last_temp.keys())[0][1]
+                operand_1 = list(self.last_temp[-1].keys())[0][0] # first item of dict and firt item of tuple which is var name
+                operand_1_addr = list(self.last_temp[-1].keys())[0][1]
+                self.last_temp.pop(-1)
                 
             except:
                 raise ValueError('No last temp value')
@@ -878,8 +889,9 @@ class Semantic():
 
         if operand_1 == None:
             try:
-                operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
-                operand_1_addr = list(self.last_temp.keys())[0][1]
+                operand_1 = list(self.last_temp[-1].keys())[0][0] # first item of dict and firt item of tuple which is var name
+                operand_1_addr = list(self.last_temp[-1].keys())[0][1]
+                self.last_temp.pop(-1)
             except:
                 raise ValueError('No last tmep value')
 
@@ -904,7 +916,7 @@ class Semantic():
         self.insert_variable(save_loc,temp_type,'temp',value=operand_1_addr)
         new_var = (save_loc , self.memory_count['temp'][temp_type]-1)#the variable count has increase so take one from the memory count
         newTemp = {new_var:{'type':temp_type}}
-        self.last_temp = newTemp
+        #self.last_temp.append(newTemp)
         self.temp_count += 1
         save_loc_addr = self.get_var_addr(save_loc)
         
@@ -927,13 +939,12 @@ class Semantic():
 
         if operand_1 == None:
             try:
-                operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
-                operand_1_addr = list(self.last_temp.keys())[0][1]
+                operand_1 = list(self.last_temp[-1].keys())[0][0] # first item of dict and firt item of tuple which is var name
+                operand_1_addr = list(self.last_temp[-1].keys())[0][1]
+                self.last_temp.pop(-1)
             except:
-                raise ValueError('No last tmep value')
+                raise ValueError('No last temp value')
 
-        
-        
         operand_1_addr = self.get_var_addr(operand_1)
 
         save_loc = 'temp'+str(self.temp_count)
@@ -941,7 +952,7 @@ class Semantic():
         self.insert_variable(save_loc,temp_type,'temp',value=operand_1_addr)
         new_var = (save_loc , self.memory_count['temp'][temp_type]-1)#the variable count has increase so take one from the memory count
         newTemp = {new_var:{'type':temp_type}}
-        self.last_temp = newTemp
+        #self.last_temp.append(newTemp)
         self.temp_count += 1
         save_loc_addr = self.get_var_addr(save_loc)
 
@@ -955,10 +966,13 @@ class Semantic():
 
     def insert_plus_quadruple_dim2(self,arr,operand_1=None,dim1=None):
 
+
         if operand_1 == None:
             try:
-                operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
-                operand_1_addr = list(self.last_temp.keys())[0][1]
+                operand_1 = list(self.last_temp[-1].keys())[0][0] # first item of dict and firt item of tuple which is var name
+                operand_1_addr = list(self.last_temp[-1].keys())[0][1]
+                self.last_temp.pop(-1)
+
             except:
                 raise ValueError('No last temp value')
 
@@ -969,6 +983,8 @@ class Semantic():
                 type_1 = self.get_value_type(operand_1)
                 operand_1 = 'const'+str(self.const_var_count)
                 self.insert_variable(operand_1,type_1,'const',value=value)
+                addr = self.get_var_addr(operand_1)
+                new_var = (operand_1,addr)
                 self.const_var_count += 1
 
 
@@ -984,7 +1000,7 @@ class Semantic():
         self.insert_variable(save_loc,temp_type,'temp',value=operand_1_addr)
         new_var = (save_loc , self.memory_count['temp'][temp_type]-1)#the variable count has increase so take one from the memory count
         newTemp = {new_var:{'type':temp_type}}
-        self.last_temp = newTemp
+        #self.last_temp.append(newTemp)
         self.temp_count += 1
         save_loc_addr = self.get_var_addr(save_loc)
 
@@ -1085,7 +1101,7 @@ class Semantic():
 
         temp_mat_key  = self.insert_temp_mat(mat_type,index1,index2,var_obj)
         quadruple = {'operation':'transpose','operand_1':mat_addr,'operand_2':None,'save_loc':temp_mat_key[1]}
-        self.last_temp = {temp_mat_key:self.variables_table[temp_mat_key]}
+        self.last_temp.append({temp_mat_key:self.variables_table[temp_mat_key]})
         self.quadruples.append(quadruple)
         
 
@@ -1105,7 +1121,7 @@ class Semantic():
 
         temp_mat_key  = self.insert_temp_mat(mat_type,index1,index2,var_obj)
         quadruple = {'operation':'inverse','operand_1':mat_addr,'operand_2':None,'save_loc':temp_mat_key[1]}
-        self.last_temp = {temp_mat_key:self.variables_table[temp_mat_key]}
+        self.last_temp.append({temp_mat_key:self.variables_table[temp_mat_key]})
         self.quadruples.append(quadruple)
 
 
@@ -1182,7 +1198,7 @@ class Semantic():
 
         temp_mat_key  = self.insert_temp_mat(mat1_type,index1,index2,var_obj1)
         quadruple =  {'operation':operation+ type_op,'operand_1':mat_1_addr,'operand_2':mat2_addr,'save_loc':temp_mat_key[1]}
-        self.last_temp = {temp_mat_key:self.variables_table[temp_mat_key]}
+        self.last_temp.append({temp_mat_key:self.variables_table[temp_mat_key]})
         self.quadruples.append(quadruple)
 
 
@@ -1192,6 +1208,7 @@ class Semantic():
         mat2_addr  = self.get_var_addr(mat_2)
         mat1_type = self.get_variable_type(mat_1)
         mat2_type = self.get_variable_type(mat_2)
+
 
         try:
             semantic_cube[mat1_type]['='][mat2_type]
@@ -1222,8 +1239,8 @@ class Semantic():
         
         if operand_1 == None:
             try:
-                operand_1 = list(self.last_temp.keys())[0][0] # first item of dict and firt item of tuple which is var name
-                operand_1_addr = list(self.last_temp.keys())[0][1]
+                operand_1 = list(self.last_temp[-1].keys())[0][0] # first item of dict and firt item of tuple which is var name
+                operand_1_addr = list(self.last_temp[-1].keys())[0][1]
             except:
                 raise ValueError('No last temp value')
 

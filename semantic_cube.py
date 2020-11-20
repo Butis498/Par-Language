@@ -44,6 +44,7 @@ semantic_cube = {
             'int': 'bool',
             'float': 'bool'
         }
+        
     },
 
     'float': {
