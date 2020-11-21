@@ -23,5 +23,5 @@ var
     int i,l;
 { 
     Arreglos(3, ArregloF[2], 'c', True);
-
+    write(i);
 }
