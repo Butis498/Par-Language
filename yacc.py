@@ -26,6 +26,7 @@ class MyParser(object):
         self.semantic.current_func = p[1]
         self.semantic.program_id = p[1]
         self.semantic.insert_func(p[1],'void',0)
+        self.program_id = p[1]
        
     def p_expression_start_goto(self,p):
         '''
@@ -726,5 +727,6 @@ class MyParser(object):
         self.current_scope = 'global'
         self.variables_stack  = []
         self.dims_stack = []
+        self.program_id = ''
 
 

@@ -2,19 +2,31 @@ import pickle
 from memory import Memory
 class VirtualMachine():
 
-    def __init__(self):
+    def __init__(self,main_id):
         self.functions_dict = None
         self.quadruples = None
         self.base_memory_dict = None
         self.variables_dict = None
         self.instruction_pointer = 0
         self.DataSegment = None
+        self.main_id = main_id
 
     def start_data_segment(self):
-        main_program = 'Ejemplo'
-        func = self.functions_dict[main_program]
-        self.DataSegment = Memory()
-        self.DataSegment.set_memory(func,self.base_memory_dict,self.variables_dict)
+        func = self.functions_dict[self.main_id]
+        self.memory = Memory()
+        self.memory.set_memory(func,self.base_memory_dict,self.variables_dict)
+
+
+    def add_stack_segment(self,func_name):
+        func = self.functions_dict[func_name]
+        self.memory.add_memeory_call(func)
+
+
+    def run_code(self):
+        self.open_dicts()
+        self.start_data_segment()
+        self.add_stack_segment('Arreglos')
+
 
     def open_dicts(self):
         

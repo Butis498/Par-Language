@@ -8,7 +8,8 @@ var
 
 module int Arreglos (int a, float b, char c, bool d)
 var int i;
-    char l;
+   int gg[3][10];
+   char l;
 { i = j + (p-j*2+j);
 if (j == 1 ) then
 {return (j);}
