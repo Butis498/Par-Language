@@ -5,6 +5,7 @@ class MyLexer(object):
 
 
     def __init__(self):
+        self.line_cont = 0
         self.reserved = {
             'write' : 'WRITE',
             'if':'IF',
@@ -88,6 +89,7 @@ class MyLexer(object):
     # Define a rule so we can track line numbers
     def t_newline(self, t):
         r'\n+'
+        self.line_cont += 1
         t.lexer.lineno += len(t.value)
     
     # A string containing ignored characters (spaces and tabs)

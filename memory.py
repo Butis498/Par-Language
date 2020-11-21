@@ -71,6 +71,12 @@ class Memory():
                 addr += 1
 
         
+        for scope in var_cont.keys():
+            for type_var in scope.keys():
+                for i in range(scope[type_var]):
+
+                    pass
+
 
 
         print(json.dumps(self.memory,sort_keys=True,indent=4, separators=(',', ': ')))

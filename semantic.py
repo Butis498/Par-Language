@@ -107,7 +107,9 @@ class Semantic():
                     index_1_addr = self.get_var_addr(index_1)
                     m1_addr = self.get_var_addr(m1)
 
-                    dims.update({'m1':m1_addr,'index_1':index_1_addr})
+                    size = dim1
+
+                    dims.update({'m1':m1_addr,'index_1':index_1_addr,'size':size})
                     
                 else:
                     index_1 = 'const'+str(self.const_var_count)
@@ -133,9 +135,11 @@ class Semantic():
 
                     index_2_addr = self.get_var_addr(index_2)
                     m2_addr = self.get_var_addr(m2)
+
+                    size = dim1 * dim2
                     
                     
-                    dims.update({'m1':m1_addr,'m2':m2_addr,'index_1':index_1_addr,'index_2':index_2_addr})
+                    dims.update({'m1':m1_addr,'m2':m2_addr,'index_1':index_1_addr,'index_2':index_2_addr,'size':size})
 
         
         try:
@@ -225,7 +229,10 @@ class Semantic():
                 if var[1] not in range(base_glob,top_glob) and var[1] not in range(base_const,top_const):
                     
                     if var[1] in range(base_temp,top_temp):
-                        res['temp'][self.variables_table[var]['type']] += 1
+                        if 'size' in self.variables_table[var].keys():
+                            res['temp'][self.variables_table[var]['type']] += self.variables_table[var]['size']
+                        else:
+                            res['temp'][self.variables_table[var]['type']] += 1
 
                     if var[1] in range(base_local,top_local):
                         res['local'][self.variables_table[var]['type']] += 1

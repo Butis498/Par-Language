@@ -301,6 +301,7 @@ class MyParser(object):
         
         if p[2] == None:
             last_temp = list(self.semantic.last_temp[-1].keys())[0][0]
+            self.semantic.last_temp.pop(-1)
         else:
             last_temp = p[2]
 
@@ -713,10 +714,12 @@ class MyParser(object):
 
     # Error rule for syntax errors
     def p_error(self,p):
-        raise SystemError("Syntax error in input!")
+        self.lexer
+        raise SystemError(f"Syntax error in line {self.lex.line_cont+2}")
 
     def __init__(self):
-        self.lexer = MyLexer().build()
+        self.lex = MyLexer()
+        self.lexer = self.lex.build()
         self.parser = yacc.yacc(module=self)
         self.semantic = Semantic()
         self.current_type =''
