@@ -2,6 +2,7 @@ from lexer import MyLexer
 import ply.yacc as yacc
 from semantic import Semantic
 
+
 class MyParser(object):
 
     tokens = MyLexer.tokens
@@ -13,7 +14,9 @@ class MyParser(object):
         '''
         
         quadruple_end =  {'operation':'end','operand_1':None,'operand_2':None,'save_loc':None}
+        self.semantic.export_to_obj()
         self.semantic.quadruples.append(quadruple_end)
+        print(self.semantic.last_temp)
         self.semantic.print_quadruples()
 
     def p_expression_program_id(self,p):
@@ -47,6 +50,12 @@ class MyParser(object):
     def p_expression_vars(self,p):
         '''
         vars : VAR vars1
+        '''
+        self.semantic.last_temp.clear()
+        
+
+    def p_expression_vars3(self,p):
+        '''
         vars3 : COMA vars2
               | SEMICOLONS vars4
         vars4 : vars1
@@ -79,11 +88,18 @@ class MyParser(object):
 
     def p_expression_end_func(self,p):
         '''
-        end_func : MODULE func_dec LPAREN functions2 RPAREN functions5 update_params block
+        end_func : MODULE clear_last func_dec LPAREN functions2 RPAREN functions5 update_params block
         '''
         
         self.semantic.update_func_memory(self.semantic.current_func)
         self.semantic.insert_func_quadruple(operation='endfunc')
+
+    def p_expression_clear_last(self,p):
+        '''
+        clear_last : empty
+        '''
+        
+        self.semantic.last_temp.clear()
 
 
     def p_asignation_update_params(self,p):
@@ -143,6 +159,7 @@ class MyParser(object):
         '''
         self.semantic.reset_memory('temp')
         self.semantic.reset_memory('local')
+        self.semantic.last_temp.clear()
 
 
     def p_term_type(self,p):
@@ -301,6 +318,7 @@ class MyParser(object):
        
         if p[3] == None:
             last_temp = list(self.semantic.last_temp[-1].keys())[0][0]
+            self.semantic.last_temp.pop(-1)
         else:
             last_temp = p[3]
         
@@ -338,7 +356,8 @@ class MyParser(object):
         '''
         self.semantic.insert_quadruple_action(p[1],p[3])
         try:
-            self.semantic.insert_quadruple_asignation(self.semantic.current_func,p[3])
+            
+            self.semantic.insert_quadruple_asignation(self.semantic.current_func,p[3],True)
         except KeyError:
 
             raise KeyError('No return for function given')
@@ -475,12 +494,16 @@ class MyParser(object):
                 mod = p[2]
                 self.semantic.apply_modifier(arr_to_mod,mod)
                 p[0] = list(self.semantic.last_temp[-1].keys())[0][0]
+                self.semantic.last_temp.pop(-1)
+                
+                
             else:
                 p[0] = p[1]
         else:
             if p[2] != None:
                 raise KeyError("Wrong usage of modifier")
             p[0] = list(self.semantic.last_temp[-1].keys())[0][0]
+            self.semantic.last_temp.pop(-1)
 
         
         self.semantic.current_arr.pop(-1)
@@ -517,9 +540,13 @@ class MyParser(object):
                | empty
         '''
         if p[1] != None:
+            last = list(self.semantic.last_temp[-1].keys())[0][0]
+            self.semantic.last_temp.pop(-1)
             s1_times_m1 = list(self.semantic.last_temp[-1].keys())[0][0]
-            self.semantic.last_temp.pop(-1)            
-            self.semantic.insert_plus_quadruple_dim2(self.semantic.current_arr[-1],p[3],s1_times_m1)
+            self.semantic.last_temp.pop(-1)
+            
+            
+            self.semantic.insert_plus_quadruple_dim2(self.semantic.current_arr[-1],last,s1_times_m1)
             self.semantic.insert_plus_quadruple(self.semantic.current_arr[-1])
             p[0] = p[1]
             
@@ -567,6 +594,7 @@ class MyParser(object):
         if p[2] == None:
             p[0] = p[1]
             
+
         else:
             self.semantic.insert_quadruple_operation(p[2],p[1],p[3])
         
@@ -675,8 +703,8 @@ class MyParser(object):
         p[0] = p[1]
 
     def parse(self,inputString):
-        r = MyLexer()
-        r.printTokens(inputString)
+        #r = MyLexer()
+        #r.printTokens(inputString)
         self.parser.parse(input=inputString,lexer=self.lexer,debug=False)
         
 

@@ -1,4 +1,5 @@
 from yacc import MyParser
+from VM import VirtualMachine
 
 if __name__ == "__main__":
     
@@ -7,3 +8,7 @@ if __name__ == "__main__":
         print(test_code)
         parser = MyParser()
         parser.parse(test_code)
+
+    vm = VirtualMachine()
+    vm.open_dicts()
+    vm.start_data_segment()

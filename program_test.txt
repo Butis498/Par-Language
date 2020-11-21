@@ -5,8 +5,10 @@ var
  int x,y;
  int mat2[10][6];
 
-module int fib(int x) 
+module int fib(int x)
+var
 
+   int i;
 {
    if((x==1)|(x==0)) then {
       return(x);
@@ -17,7 +19,10 @@ module int fib(int x)
 
 main ()
 { 
-
-   mat[2][3]= x + y;
+   
    mat = mat + mat2!;
+   mat[1][2] = 1;
+   x = 10;
+
+
 }
