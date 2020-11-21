@@ -280,10 +280,16 @@ class Semantic():
 
         
         validation_type_1 = self.variables_table[(operand_1,operand_1_addr)]['type']
+
+        if validation_type_1 == 'pointer':
+            validation_type_1 = self.variables_table[(operand_1,operand_1_addr)]['pointer_type']
+
         validation_type_2 = self.get_addr_type(save_loc_addr)
 
-        if validation_type_1 != validation_type_2:
-            raise TypeError(f'Incompatible Types {validation_type_1} and {validation_type_2}')
+        try:
+            semantic_cube[validation_type_1]['='][validation_type_2]
+        except:
+             raise TypeError(f'Incompatible Types {validation_type_1} and {validation_type_2}')
 
         quadruple = {'operation': 'param', 'operand_1': operand_1_addr,
                     'operand_2': None, 'save_loc': save_loc_addr}
@@ -852,6 +858,14 @@ class Semantic():
                 base = self.variables_base_memory[scope][type_var]
                 top = base + self.MEMORY_SPACE -1
                 if base <= addr <= top:
+                    if type_var  == 'pointer':
+                        
+                        for var_name,addr_saved in self.variables_table.keys():
+                            if addr == addr_saved:
+                                var = var_name 
+
+                        type_var = self.variables_table[(var,addr)]['pointer_type']
+                    print(type_var,';;;;;;;;;;;;;;;;;;;;;;;;;;;;;')
                     return type_var
 
     def key_to_json(self,data):
