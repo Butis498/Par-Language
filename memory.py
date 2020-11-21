@@ -10,7 +10,7 @@ class Memory():
 
     def set_memory(self,func:dict,memory_dict:dict,const_vars:dict):
 
-        var_cont = func['memory_usage']
+        _ = func['memory_usage']
         params_cont = func['param_cont']
         variables = func['params']
         self.base_memory = memory_dict
@@ -27,7 +27,7 @@ class Memory():
             arr_size = 1
             if 'size' in variables[key].keys():
                 arr_size = variables[key]['size']
-                
+
             for _ in range(arr_size):
 
                 if addr not in self.data_segment.keys():

@@ -235,7 +235,10 @@ class Semantic():
                             res['temp'][self.variables_table[var]['type']] += 1
 
                     if var[1] in range(base_local,top_local):
-                        res['local'][self.variables_table[var]['type']] += 1
+                        if 'size' in self.variables_table[var].keys():
+                            res['local'][self.variables_table[var]['type']] += self.variables_table[var]['size']
+                        else:
+                            res['local'][self.variables_table[var]['type']] += 1
 
 
         return res
