@@ -1,5 +1,6 @@
 import pickle
 from memory import Memory
+from time import sleep
 class VirtualMachine():
 
     def __init__(self,main_id):
@@ -25,7 +26,9 @@ class VirtualMachine():
     def run_code(self):
         self.open_dicts()
         self.start_data_segment()
-        self.add_stack_segment('Arreglos')
+        while self.quadruples[self.instruction_pointer]['operation'] != 'end':
+            self.make_action(self.quadruples[self.instruction_pointer])
+
 
 
     def open_dicts(self):
@@ -50,5 +53,18 @@ class VirtualMachine():
         except:
 
             raise SystemError('Can not open files to execute')
+
+
+    def make_action(self,quadruple:dict):
+
+        operation = quadruple['operation']
+        operand_1 = quadruple['operand_1']
+        operand_2 = quadruple['operand_2'] 
+        save_loc = quadruple['save_loc']
+
+  
+        print(operation,operand_1,operand_2,save_loc)
+
+
 
         

@@ -159,8 +159,6 @@ class Semantic():
                 pointer_type = {'pointer_type':last_temp_type}
                 variable[new_variable].update(pointer_type)
 
-
-
             
             self.last_temp.append(variable)
             self.variables_table.update(variable)
@@ -203,11 +201,6 @@ class Semantic():
                         value1 = self.variables_table[key1]['value']
 
                         self.memory_count[scope][variable_type] += value1
-
-                
-
-                        
-
 
         except KeyError as err:
 
@@ -868,7 +861,6 @@ class Semantic():
                                 var = var_name 
 
                         type_var = self.variables_table[(var,addr)]['pointer_type']
-                    print(type_var,';;;;;;;;;;;;;;;;;;;;;;;;;;;;;')
                     return type_var
 
     def key_to_json(self,data):
@@ -999,7 +991,7 @@ class Semantic():
 
         save_loc = 'temp'+str(self.temp_count)
         temp_type = 'pointer'
-        self.insert_variable(save_loc,temp_type,'temp',value=operand_1_addr)
+        self.insert_variable(save_loc,temp_type,'temp',value= operand_1_addr)
         #new_var = (save_loc , self.memory_count['temp'][temp_type]-1)#the variable count has increase so take one from the memory count
         #newTemp = {new_var:{'type':temp_type}}
         #self.last_temp.append(newTemp)
