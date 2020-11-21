@@ -206,6 +206,9 @@ class MyParser(object):
         '''
         condition2 : LPAREN expression RPAREN
         '''
+
+        if self.semantic.check_exp_type(p[2]) != 'bool':
+            raise TypeError('not bool type in condition')
         self.semantic.insert_quadruple_goto(None,p[2],False)
         self.semantic.jumps_stack.append(len(self.semantic.quadruples)-1)
 

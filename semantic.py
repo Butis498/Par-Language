@@ -709,8 +709,6 @@ class Semantic():
                 self.insert_variable(operand_1,type_1,'const',value = value)
                 self.const_var_count += 1
                 self.last_temp.pop(-1)
-
-
         except TypeError as err:
 
             raise TypeError(str(err))
@@ -771,6 +769,11 @@ class Semantic():
 
     def insert_quadruple_goto(self,quadruple_num=None,operand_1=None,goto_type=None):
 
+        print('hbbbbbbbbbbbbbbbbbbbbbb')
+        print(operand_1,operand_1)
+        print(self.last_temp)
+        print('hbbbbbbbbbbbbbbbbbbbbbb')
+
         if operand_1 == None and goto_type != None:
             try:
                 operand_1 = list(self.last_temp[-1].keys())[0][0] # first item of dict and firt item of tuple which is var name
@@ -782,7 +785,21 @@ class Semantic():
         
         else:
             if operand_1 != None:
+
+                try:
+                    if self.get_value_type(operand_1) != 'var':
+                        value = operand_1
+                        type_1 = self.get_value_type(operand_1)
+                        operand_1 = 'const'+str(self.const_var_count)
+                        self.insert_variable(operand_1,type_1,'const',value = value)
+                        self.const_var_count += 1
+                        self.last_temp.pop(-1)
+                except TypeError as err:
+
+                    raise TypeError(str(err))
+
                 operand_1_addr = self.get_var_addr(operand_1) 
+
 
                 if self.get_variable_type(operand_1) != 'bool':
                     raise TypeError(f'{operand_1} Not bool variable')
@@ -809,11 +826,15 @@ class Semantic():
 
         addr = self.get_var_addr(var)
 
+
         for scope in self.variables_base_memory.keys():
             for type_var in self.variables_base_memory[scope].keys():
                 base = self.variables_base_memory[scope][type_var]
                 top = base + self.MEMORY_SPACE -1
                 if base <= addr <= top:
+
+                    if type_var  == 'pointer':
+                        type_var = self.variables_table[(var,addr)]['pointer_type']
                     return type_var
 
     def get_addr_type(self, addr):
@@ -1338,7 +1359,13 @@ class Semantic():
             raise TypeError(str(err))
         
         operand_1_addr = self.get_var_addr(operand_1)
-        return self.get_addr_type(operand_1_addr)
+        res_type = self.get_addr_type(operand_1_addr)
+        if res_type == 'pointer':
+            key = (operand_1,operand_1_addr)
+            res_type = self.variables_table[key]['pointer_type']
+            print(res_type)
+        
+        return res_type
 
 
     def get_const_value(self,addr):
