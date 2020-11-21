@@ -1,27 +1,10 @@
 program Ejemplo;
-var
-    int i,j,p;
-    float valor;
-   int Arreglo[10];
-   float ArregloF[10];
-
-
-module int Arreglos (int a, float b, char c, bool d)
-var int i;
-   int gg[3][10];
-   char l;
-{ i = j + (p-j*2+j);
-if (j == 1 ) then
-{return (j);}
-else
-{return (j * Arreglos (j-1, ArregloF[1], 'c', False));}
-}
 
 
 main ()
 var 
     int i,l;
 { 
-    Arreglos(3, ArregloF[2], 'c', True);
+    i = 3 + 7;
     write(i);
 }

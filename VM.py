@@ -28,6 +28,7 @@ class VirtualMachine():
         self.start_data_segment()
         while self.quadruples[self.instruction_pointer]['operation'] != 'end':
             self.make_action(self.quadruples[self.instruction_pointer])
+            sleep(1)
 
 
 
@@ -67,156 +68,158 @@ class VirtualMachine():
 
 
 
-    if operation == 'goto':
+        if operation == 'goto':
             self.instruction_pointer = save_loc
         elif operation == 'gotof':
 
-            if get_mememory_value(operand_1) == "False":
+            if self.memory.get_mememory_value(operand_1) == "False":
                 self.instruction_pointer = save_loc
             else:
                 self.instruction_pointer += 1
 
         elif operation == '+':
-            temp = get_mememory_value(operand_1) + get_mememory_value(operand_2)
-            set_memory(save_loc,temp)
+            temp = self.memory.get_mememory_value(operand_1) + self.memory.get_mememory_value(operand_2)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
         elif operation == '-':
-            temp = get_mememory_value(operand_1) - get_mememory_value(operand_2)
-            set_memory(save_loc,temp)
+            temp = self.memory.get_mememory_value(operand_1) - self.memory.get_mememory_value(operand_2)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
-         elif operation == '/':
-            temp = get_mememory_value(operand_1) / get_mememory_value(operand_2)
-            set_memory(save_loc,temp)
+        elif operation == '/':
+            temp = self.memory.get_mememory_value(operand_1) / self.memory.get_mememory_value(operand_2)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
-         elif operation == '*':
-            temp = get_mememory_value(operand_1) * get_mememory_value(operand_2)
-            set_memory(save_loc,temp)
+        elif operation == '*':
+            temp = self.memory.get_mememory_value(operand_1) * self.memory.get_mememory_value(operand_2)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
-         elif operation == '<':
-            temp = get_mememory_value(operand_1) < get_mememory_value(operand_2)
-            set_memory(save_loc,temp)
+        elif operation == '<':
+            temp = self.memory.get_mememory_value(operand_1) < self.memory.get_mememory_value(operand_2)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
          
-         elif operation == '>':
-            temp = get_mememory_value(operand_1) > get_mememory_value(operand_2)
-            set_memory(save_loc,temp)
+        elif operation == '>':
+            temp = self.memory.get_mememory_value(operand_1) > self.memory.get_mememory_value(operand_2)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
-         elif operation == '<=':
-            temp = get_mememory_value(operand_1) <= get_mememory_value(operand_2)
-            set_memory(save_loc,temp)
+        elif operation == '<=':
+            temp = self.memory.get_mememory_value(operand_1) <= self.memory.get_mememory_value(operand_2)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
-         elif operation == '>=':
-            temp = get_mememory_value(operand_1) >= get_mememory_value(operand_2)
-            set_memory(save_loc,temp)
+        elif operation == '>=':
+            temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
-         elif operation == '=':
-            temp = get_mememory_value(operand_1)
-            set_memory(save_loc,temp)
+        elif operation == '=':
+
+            print(operand_1, "dadlsa,dlas,;d,as;l")
+            temp = self.memory.get_mememory_value(operand_1)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
-         elif operation == '==':
-             temp = get_mememory_value(operand_1) == get_mememory_value(operand_2)
-            set_memory(save_loc,temp)
+        elif operation == '==':
+            temp = self.memory.get_mememory_value(operand_1) == self.memory.get_mememory_value(operand_2)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
-         elif operation == 'gosub':
-            temp = get_mememory_value(operand_1) >= get_mememory_value(operand_2)
-            set_memory(save_loc,temp)
+        elif operation == 'gosub':
+            temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
-         elif operation == 'param':
-            temp = get_mememory_value(operand_1) >= get_mememory_value(operand_2)
-            set_memory(save_loc,temp)
+        elif operation == 'param':
+            temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
-         elif operation == 'ver':
-            temp = get_mememory_value(operand_1) >= get_mememory_value(operand_2)
-            set_memory(save_loc,temp)
+        elif operation == 'ver':
+            temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
-         elif operation == 'ver_dim':
-            temp = get_mememory_value(operand_1) >= get_mememory_value(operand_2)
-            set_memory(save_loc,temp)
+        elif operation == 'ver_dim':
+            temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
-         elif operation == 'era':
-            temp = get_mememory_value(operand_1) >= get_mememory_value(operand_2)
-            set_memory(save_loc,temp)
+        elif operation == 'era':
+            temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
         
-         elif operation == 'end':
-            temp = get_mememory_value(operand_1) >= get_mememory_value(operand_2)
-            set_memory(save_loc,temp)
+        elif operation == 'end':
+            temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
-         elif operation == 'endfunc':
-            temp = get_mememory_value(operand_1) >= get_mememory_value(operand_2)
-            set_memory(save_loc,temp)
+        elif operation == 'endfunc':
+            temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
-         elif operation == 'write':
-            print(get_mememory_value(operand_1))
+        elif operation == 'write':
+            print(self.memory.get_mememory_value(operand_1))
             self.instruction_pointer += 1
         
-         elif operation == 'read':
+        elif operation == 'read':
             temp = input()
-            set_memory(save_loc,temp)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
-         elif operation == '+mat':
-            temp = get_mememory_value(operand_1) >= get_mememory_value(operand_2)
-            set_memory(save_loc,temp)
+        elif operation == '+mat':
+            temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
          
-         elif operation == '*mat':
-            temp = get_mememory_value(operand_1) >= get_mememory_value(operand_2)
-            set_memory(save_loc,temp)
+        elif operation == '*mat':
+            temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
-         elif operation == '-mat':
-            temp = get_mememory_value(operand_1) >= get_mememory_value(operand_2)
-            set_memory(save_loc,temp)
+        elif operation == '-mat':
+            temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
-         elif operation == '=mat':
-            temp = get_mememory_value(operand_1) >= get_mememory_value(operand_2)
-            set_memory(save_loc,temp)
+        elif operation == '=mat':
+            temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
-         elif operation == '+arr':
-            temp = get_mememory_value(operand_1) >= get_mememory_value(operand_2)
-            set_memory(save_loc,temp)
+        elif operation == '+arr':
+            temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
          
-         elif operation == '*arr':
-            temp = get_mememory_value(operand_1) >= get_mememory_value(operand_2)
-            set_memory(save_loc,temp)
+        elif operation == '*arr':
+            temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
-         elif operation == '-arr':
-            temp = get_mememory_value(operand_1) >= get_mememory_value(operand_2)
-            set_memory(save_loc,temp)
+        elif operation == '-arr':
+            temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
-         elif operation == '=arr':
-            temp = get_mememory_value(operand_1) >= get_mememory_value(operand_2)
-            set_memory(save_loc,temp)
+        elif operation == '=arr':
+            temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
-         elif operation == 'transpose':
-            temp = get_mememory_value(operand_1) >= get_mememory_value(operand_2)
-            set_memory(save_loc,temp)
+        elif operation == 'transpose':
+            temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
-         elif operation == 'inverse':
-            temp = get_mememory_value(operand_1) >= get_mememory_value(operand_2)
-            set_memory(save_loc,temp)
+        elif operation == 'inverse':
+            temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)
+            self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
