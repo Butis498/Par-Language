@@ -242,7 +242,7 @@ class Semantic():
                     'operand_2': None, 'save_loc': func}
 
         self.quadruples.append(quadruple)
-        # print(self.last_temp)
+        print(self.last_temp)
         print(quadruple)
 
     def insert_param_quadruple(self,operand_1,save_loc):
@@ -291,7 +291,7 @@ class Semantic():
                     'operand_2': None, 'save_loc': save_loc_addr}
 
         self.quadruples.append(quadruple)
-        # print(self.last_temp)
+        print(self.last_temp)
         print(quadruple)
 
     
@@ -406,10 +406,7 @@ class Semantic():
 
     def insert_quadruple_operation(self, operation, operand_1=None, operand_2=None, save_loc=None):
 
-        print('poooooooooooooooooooo')
-        print(operation,operand_1,operand_2,save_loc)
-        print(self.last_temp)
-        print('pooooooooooooooooooo')
+
 
         print(self.last_temp,operation)
         if operand_1 == None:
@@ -698,11 +695,6 @@ class Semantic():
             print(quadruple)
     
     def insert_quadruple_asignation(self,save_loc,operand_1=None,return_val=False):
-
-        print('fffffffffffffffffffff')
-        print(save_loc,operand_1)
-        print(self.last_temp)
-        print('ffffffffffffffffffffff')
         
         if operand_1 == None:
             try:
@@ -781,10 +773,6 @@ class Semantic():
 
     def insert_quadruple_goto(self,quadruple_num=None,operand_1=None,goto_type=None):
 
-        print('hbbbbbbbbbbbbbbbbbbbbbb')
-        print(operand_1,operand_1)
-        print(self.last_temp)
-        print('hbbbbbbbbbbbbbbbbbbbbbb')
 
         if operand_1 == None and goto_type != None:
             try:
@@ -829,7 +817,7 @@ class Semantic():
         
         quadruple = {'operation':goto,'operand_1':operand_1_addr,'operand_2':None,'save_loc':quadruple_num}
         self.quadruples.append(quadruple)
-        # print(self.last_temp)
+        print(self.last_temp)
         print(quadruple)
         self.goto_quadruples_stack.append(self.quadruples[-1])
 
@@ -920,7 +908,9 @@ class Semantic():
                 
             except:
                 raise ValueError('No last temp value')
-        
+        else:
+            operand_1_addr = self.get_var_addr(operand_1)
+            self.last_temp.append({(operand_1,operand_1_addr):self.variables_table[(operand_1,operand_1_addr)]})  
         try:
             if self.get_value_type(operand_1) != 'var':
                 value = operand_1
@@ -935,9 +925,11 @@ class Semantic():
             raise TypeError(str(err))
 
         operand_1_addr = self.get_var_addr(operand_1)
+           
+
         var_addr = self.get_var_addr(arr_name)
         var = (arr_name,var_addr)
-        
+
 
         try:
             #base = self.get_var_addr(arr_name)
@@ -959,13 +951,12 @@ class Semantic():
 
         quadruple = {'operation':'ver','operand_1':operand_1_addr,'operand_2':base_0_addr,'save_loc':index}
         self.quadruples.append(quadruple)
-        # print(self.last_temp)
+        print(self.last_temp)
         print(quadruple)
 
 
     def insert_plus_quadruple(self,arr,operand_1=None):
-        print(self.last_temp)
-        print(operand_1)
+        
 
         if operand_1 == None:
             try:
@@ -1016,10 +1007,13 @@ class Semantic():
 
         
         self.quadruples.append(quadruple)
-        #
+        print(self.last_temp)
         print(quadruple)
     
     def insert_times_quadruple(self,arr,operand_1=None):
+
+        print(arr,operand_1)
+        print(self.last_temp)
 
         if operand_1 == None:
             try:
@@ -1212,7 +1206,7 @@ class Semantic():
         quadruple = {'operation':'transpose','operand_1':mat_addr,'operand_2':None,'save_loc':temp_mat_key[1]}
         self.last_temp.append({temp_mat_key:self.variables_table[temp_mat_key]})
         self.quadruples.append(quadruple)
-        # print(self.last_temp)
+        print(self.last_temp)
         print(quadruple)
         
 
@@ -1234,7 +1228,7 @@ class Semantic():
         quadruple = {'operation':'inverse','operand_1':mat_addr,'operand_2':None,'save_loc':temp_mat_key[1]}
         self.last_temp.append({temp_mat_key:self.variables_table[temp_mat_key]})
         self.quadruples.append(quadruple)
-        # print(self.last_temp)
+        print(self.last_temp)
         print(quadruple)
 
 
@@ -1254,7 +1248,7 @@ class Semantic():
 
         quadruple =  {'operation':'ver_dim','operand_1':index1,'operand_2':index2,'save_loc':None}
         self.quadruples.append(quadruple)
-        # print(self.last_temp)
+        print(self.last_temp)
         print(quadruple)
 
 
@@ -1317,7 +1311,7 @@ class Semantic():
         quadruple =  {'operation':operation+ type_op,'operand_1':mat_1_addr,'operand_2':mat2_addr,'save_loc':temp_mat_key[1]}
         self.last_temp.append({temp_mat_key:self.variables_table[temp_mat_key]})
         self.quadruples.append(quadruple)
-        # print(self.last_temp)
+        print(self.last_temp)
         print(quadruple)
 
 
@@ -1351,7 +1345,7 @@ class Semantic():
 
         quadruple =  {'operation':'='+type_op,'operand_1':mat2_addr,'operand_2':None,'save_loc':mat_1_addr}
         self.quadruples.append(quadruple)
-        # print(self.last_temp)
+        print(self.last_temp)
         print(quadruple)
 
 
