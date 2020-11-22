@@ -1,31 +1,21 @@
 program Ejemplo;
-var int x;
- int i;
- int j;
- int Arr[5][5];
-
-
+var int x,y,z;
 
 
 main ()
 {
-j = 0;
- for i = 0 to 4 do{ 
-     for x = 0 to 4 do {
+read(x);
+read(y);
+read(z);
 
-         Arr[i + 0][x * 1 + 1 -1 ] = j;
-         j = j + 1;
-         x = x + 1;
-     }
-     i = i + 1;
- }
-
-  for i = 0 to 4 do{ 
-     for x = 0 to 4 do {
-         write(Arr[i][x]);
-         x = x + 1;
-     }
-     i = i + 1;
- }
- 
+if (x < y) then {
+    if(x < z) then {
+        x = x + 20;
+        if (x < z) then {
+            z = 50;
+        } else {
+            write (x);
+        }
+    }
+}
 }

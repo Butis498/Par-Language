@@ -2,6 +2,8 @@ import pickle
 from memory import Memory
 import json
 from time import sleep
+import ast
+
 class VirtualMachine():
 
     def __init__(self,main_id):
@@ -44,10 +46,34 @@ class VirtualMachine():
             
             if len(self.quadruples) <= self.instruction_pointer:
                 break
-
-
-            
         
+
+    def dataType(self, str):
+        str=str.strip()
+        if len(str) == 0: return 'BLANK'
+        try:
+            t=ast.literal_eval(str)
+
+        except ValueError:
+            return 'TEXT'
+        except SyntaxError:
+            return 'TEXT'
+
+        else:
+            if type(t) in [int, float, bool]:
+                if type(t) is int or type(t) is int:
+                    return 'INT'
+                if t in set((True,False,"true", "false")):
+                    return 'BOOL'
+                if type(t) is float:
+                    return 'FLOAT'
+            else:
+                return 'TEXT' 
+
+
+    
+    def str2bool(self, v):
+        return v.lower() in ("yes", "true", "t", "1")
         
 
 
@@ -247,7 +273,17 @@ class VirtualMachine():
         
         elif operation == 'read':
             temp = input()
-            temp = self.get_value_type(temp)
+            temp2 = self.dataType(temp)
+            print(temp2)
+            if temp2 == 'INT':
+                temp = int(temp)
+            elif  temp2 == 'FLOAT':
+                temp = float(temp)
+            elif temp2 == 'BOOL':
+                temp = self.str2bool(temp)
+                print(type(temp))
+                print(temp)
+
             self.memory.set_memory_value(operand_1,temp)
             self.instruction_pointer += 1
 
