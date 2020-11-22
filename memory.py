@@ -9,14 +9,19 @@ class Memory():
         self.stack_segment = []
         self.ranges = []
         self.max_call_stack = 300
+        self.curr_segment = 0
 
 
-    def set_memory_value(self,addr,value):
+    def set_memory_value(self,addr,value,param=False):
+
+        off_set = 0
+        if param and len(self.stack_segment) > 1:
+            off_set = 1
 
         if len(self.stack_segment) > 0:
 
-            if addr in self.stack_segment[-1].keys():
-                self.stack_segment[-1][addr] = value
+            if addr in self.stack_segment[self.curr_segment+off_set].keys():
+                self.stack_segment[self.curr_segment+off_set][addr] = value
 
             if addr in self.data_segment.keys():
                 self.data_segment[addr] = value
@@ -38,8 +43,8 @@ class Memory():
 
         
         if len(self.stack_segment) > 0:
-            if addr in self.stack_segment[-1].keys():
-                return self.stack_segment[-1][addr]
+            if addr in self.stack_segment[self.curr_segment].keys():
+                return self.stack_segment[self.curr_segment][addr]
 
             if addr in self.data_segment.keys():
                 return self.data_segment[addr]
@@ -115,13 +120,13 @@ class Memory():
                     var_base += 1
                     self.data_segment.update(var_set)  
 
-
-        print(json.dumps(self.data_segment,sort_keys=True,indent=4, separators=(',', ': ')))
+        #print(json.dumps(self.data_segment,sort_keys=True,indent=4, separators=(',', ': ')))
 
 
     def end_func(self):
 
         self.stack_segment.pop(-1)
+        self.curr_segment -= 1
 
     
 
@@ -166,7 +171,7 @@ class Memory():
         self.stack_segment.append(new_func)
         
 
-        print(json.dumps(new_func,sort_keys=True,indent=4, separators=(',', ': ')))
+        #print(json.dumps(new_func,sort_keys=True,indent=4, separators=(',', ': ')))
 
 
         

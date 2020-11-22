@@ -1,5 +1,6 @@
 import pickle
 from memory import Memory
+import json
 from time import sleep
 class VirtualMachine():
 
@@ -30,7 +31,10 @@ class VirtualMachine():
     
         while self.quadruples[self.instruction_pointer]['operation'] != 'end':
 
+            # print(json.dumps(self.memory.stack_segment,sort_keys=False,indent=4, separators=(',', ': ')))
+
             self.make_action(self.quadruples[self.instruction_pointer])
+
             
             if len(self.quadruples) <= self.instruction_pointer:
                 break
@@ -72,14 +76,14 @@ class VirtualMachine():
         operand_2 = quadruple['operand_2'] 
         save_loc = quadruple['save_loc']
 
-        print(operation,operand_1,operand_2,save_loc)
+        # print(operation,operand_1,operand_2,save_loc)
 
 
         if operation == 'goto':
             self.instruction_pointer = save_loc
         elif operation == 'gotof':
 
-            if self.memory.get_mememory_value(operand_1) == "False":
+            if self.memory.get_mememory_value(operand_1) == "False" or False:
                 self.instruction_pointer = save_loc
             else:
                 self.instruction_pointer += 1
@@ -108,7 +112,7 @@ class VirtualMachine():
 
         elif operation == '<':
             temp = self.memory.get_mememory_value(operand_1) < self.memory.get_mememory_value(operand_2)
-            if temp:
+            if temp == 'True' or temp:
                 temp = 'True'
             else:
                 temp = 'False'
@@ -116,8 +120,12 @@ class VirtualMachine():
             self.instruction_pointer += 1
 
         elif operation == '|':
-            temp = self.memory.get_mememory_value(operand_1) or self.memory.get_mememory_value(operand_2)
-            if temp == 'True':
+            # print(self.memory.get_mememory_value(operand_1) , self.memory.get_mememory_value(operand_2))
+            # print(type(self.memory.get_mememory_value(operand_1)),type(self.memory.get_mememory_value(operand_2)))
+
+            temp = self.memory.get_mememory_value(operand_1) == 'True' or self.memory.get_mememory_value(operand_2) == 'True'
+            # print('result: ',temp,type(temp))
+            if temp == 'True' or temp:
                 temp = 'True'
             else:
                 temp = 'False'
@@ -129,7 +137,7 @@ class VirtualMachine():
 
         elif operation == '&':
             temp = self.memory.get_mememory_value(operand_1) and self.memory.get_mememory_value(operand_2)
-            if temp:
+            if temp == 'True' or temp:
                 temp = 'True'
             else:
                 temp = 'False'
@@ -138,7 +146,7 @@ class VirtualMachine():
          
         elif operation == '>':
             temp = self.memory.get_mememory_value(operand_1) > self.memory.get_mememory_value(operand_2)
-            if temp:
+            if temp == 'True' or temp:
                 temp = 'True'
             else:
                 temp = 'False'
@@ -147,7 +155,7 @@ class VirtualMachine():
 
         elif operation == '<=':
             temp = self.memory.get_mememory_value(operand_1) <= self.memory.get_mememory_value(operand_2)
-            if temp:
+            if temp == 'True' or temp:
                 temp = 'True'
             else:
                 temp = 'False'
@@ -156,7 +164,7 @@ class VirtualMachine():
 
         elif operation == '>=':
             temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)
-            if temp:
+            if temp == 'True' or temp:
                 temp = 'True'
             else:
                 temp = 'False'
@@ -171,16 +179,25 @@ class VirtualMachine():
             self.instruction_pointer += 1
 
         elif operation == '==':
+            # print(self.memory.get_mememory_value(operand_1), self.memory.get_mememory_value(operand_2))
+            # print(type(self.memory.get_mememory_value(operand_1)),type(self.memory.get_mememory_value(operand_2)))
             temp = self.memory.get_mememory_value(operand_1) == self.memory.get_mememory_value(operand_2)
+            # print('result: ',temp,type(temp))
 
-            if temp == 'True':
+            if temp == 'True' or temp:
                 temp = 'True'
             else:
                 temp = 'False'
+
+            # print('curr segement: ',self.memory.curr_segment)
             self.memory.set_memory_value(save_loc,temp)
+            # print('changed_result: ',self.memory.stack_segment[self.memory.curr_segment][save_loc])
+
             self.instruction_pointer += 1
 
         elif operation == 'gosub':
+            if len(self.memory.stack_segment) > 1:
+                self.memory.curr_segment += 1
             self.jump_stack.append(self.instruction_pointer + 1)
             self.instruction_pointer = self.functions_dict[save_loc]['init']
             
@@ -191,7 +208,7 @@ class VirtualMachine():
             temp = self.memory.get_mememory_value(operand_1)
             if self.memory.is_pointer(save_loc):
                 save_loc = self.memory.get_raw_memory_value(save_loc)
-            self.memory.set_memory_value(save_loc,temp)
+            self.memory.set_memory_value(save_loc,temp,param=True)
             self.instruction_pointer += 1
 
 
