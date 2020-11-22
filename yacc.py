@@ -359,7 +359,7 @@ class MyParser(object):
         '''
         return : RETURN  LPAREN expression detect_asignation RPAREN SEMICOLONS
         '''
-        self.semantic.insert_quadruple_action(p[1],p[3])
+        self.semantic.insert_quadruple_action(p[1],p[3],return_id = self.semantic.current_func)
         try:
             
             self.semantic.insert_quadruple_asignation(self.semantic.current_func,p[3],True)
@@ -467,8 +467,9 @@ class MyParser(object):
     
     def p_expression_main(self,p):
         '''
-        main : MAIN insert_jump LPAREN RPAREN main2 block
+        main : MAIN insert_jump LPAREN RPAREN  block
         '''
+        self.semantic.update_func_memory(self.program_id)
         self.semantic.reset_memory('temp')
         self.semantic.reset_memory('local')
         self.semantic.reset_memory('global')
@@ -478,12 +479,8 @@ class MyParser(object):
         insert_jump : empty
         '''
         self.semantic.quadruples[self.semantic.jumps_stack[-1]]['save_loc'] = len(self.semantic.quadruples)
+        self.semantic.current_func = 'main'
 
-    def p_expression_main2(self,p):
-        '''
-        main2 : vars
-              | empty
-        '''
 
     def p_expression_param(self,p):
         '''

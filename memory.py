@@ -18,23 +18,42 @@ class Memory():
             if addr in self.stack_segment[-1].keys():
                 self.stack_segment[-1][addr] = value
 
+            if addr in self.data_segment.keys():
+                self.data_segment[addr] = value
+
         elif addr in self.data_segment.keys():
             self.data_segment[addr] = value
+        else:
+            raise MemoryError(f'Not address found {addr}')
+
+
+
+
+    def get_range(self,scope):
+        base = list(self.base_memory[scope].values())[0]
+        top = base + self.MEMORY_SIZE * len(self.base_memory[scope]) -1
+        return range(base,top)
 
     def get_raw_memory_value(self,addr):
+
         
         if len(self.stack_segment) > 0:
             if addr in self.stack_segment[-1].keys():
                 return self.stack_segment[-1][addr]
+
+            if addr in self.data_segment.keys():
+                return self.data_segment[addr]
+
         elif addr in self.data_segment.keys():
             return self.data_segment[addr]
         else:
-            raise MemoryError('Not address found')   
+            raise MemoryError(f'Not address found {addr}')   
 
 
     def get_mememory_value(self,addr):
 
-        if self.is_pointer(addr):
+        
+        if self.is_pointer(addr) and addr not in self.get_range('const'):
             value_mem = self.get_raw_memory_value(addr)
             value = self.get_raw_memory_value(value_mem)
         else:
@@ -53,8 +72,7 @@ class Memory():
 
     def set_memory(self,func:dict,memory_dict:dict,const_vars:dict):
 
-        _ = func['memory_usage']
-        params_cont = func['param_cont']
+        var_cont = func['memory_usage']
         variables = func['params']
         self.base_memory = memory_dict
         for const,addr in const_vars.keys():
@@ -87,7 +105,15 @@ class Memory():
                 if type_var == "pointer":
                     base = self.base_memory[scope][type_var]
                     top = base + self.MEMORY_SIZE -1
-                    self.ranges.append(range(base,top))  
+                    self.ranges.append(range(base,top))
+
+        for scope in var_cont.keys():
+            for type_var in var_cont[scope].keys():
+                var_base = self.base_memory[scope][type_var]
+                for _ in range(var_cont[scope][type_var]):
+                    var_set = {var_base:None}
+                    var_base += 1
+                    self.data_segment.update(var_set)  
 
 
         print(json.dumps(self.data_segment,sort_keys=True,indent=4, separators=(',', ': ')))
@@ -106,7 +132,6 @@ class Memory():
 
         new_func = {}
         var_cont = func['memory_usage']
-        params_cont = func['param_cont']
         variables = func['params']
 
 
@@ -139,6 +164,7 @@ class Memory():
 
         
         self.stack_segment.append(new_func)
+        
 
         print(json.dumps(new_func,sort_keys=True,indent=4, separators=(',', ': ')))
 

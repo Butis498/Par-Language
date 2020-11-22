@@ -11,6 +11,7 @@ class VirtualMachine():
         self.instruction_pointer = 0
         self.DataSegment = None
         self.main_id = main_id
+        self.jump_stack = []
 
     def start_data_segment(self):
         func = self.functions_dict[self.main_id]
@@ -26,10 +27,18 @@ class VirtualMachine():
     def run_code(self):
         self.open_dicts()
         self.start_data_segment()
+    
         while self.quadruples[self.instruction_pointer]['operation'] != 'end':
-            self.make_action(self.quadruples[self.instruction_pointer])
-            sleep(1)
 
+            self.make_action(self.quadruples[self.instruction_pointer])
+            
+            if len(self.quadruples) <= self.instruction_pointer:
+                break
+
+
+            
+        
+        
 
 
     def open_dicts(self):
@@ -63,9 +72,7 @@ class VirtualMachine():
         operand_2 = quadruple['operand_2'] 
         save_loc = quadruple['save_loc']
 
-  
         print(operation,operand_1,operand_2,save_loc)
-
 
 
         if operation == 'goto':
@@ -78,6 +85,7 @@ class VirtualMachine():
                 self.instruction_pointer += 1
 
         elif operation == '+':
+
             temp = self.memory.get_mememory_value(operand_1) + self.memory.get_mememory_value(operand_2)
             self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
@@ -97,72 +105,116 @@ class VirtualMachine():
             self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
+
         elif operation == '<':
             temp = self.memory.get_mememory_value(operand_1) < self.memory.get_mememory_value(operand_2)
+            if temp:
+                temp = 'True'
+            else:
+                temp = 'False'
+            self.memory.set_memory_value(save_loc,temp)
+            self.instruction_pointer += 1
+
+        elif operation == '|':
+            temp = self.memory.get_mememory_value(operand_1) or self.memory.get_mememory_value(operand_2)
+            if temp == 'True':
+                temp = 'True'
+            else:
+                temp = 'False'
+
+
+            self.memory.set_memory_value(save_loc,temp)
+            self.instruction_pointer += 1
+
+
+        elif operation == '&':
+            temp = self.memory.get_mememory_value(operand_1) and self.memory.get_mememory_value(operand_2)
+            if temp:
+                temp = 'True'
+            else:
+                temp = 'False'
             self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
          
         elif operation == '>':
             temp = self.memory.get_mememory_value(operand_1) > self.memory.get_mememory_value(operand_2)
+            if temp:
+                temp = 'True'
+            else:
+                temp = 'False'
             self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
         elif operation == '<=':
             temp = self.memory.get_mememory_value(operand_1) <= self.memory.get_mememory_value(operand_2)
+            if temp:
+                temp = 'True'
+            else:
+                temp = 'False'
             self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
         elif operation == '>=':
             temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)
+            if temp:
+                temp = 'True'
+            else:
+                temp = 'False'
             self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
         elif operation == '=':
-
-            print(operand_1, "dadlsa,dlas,;d,as;l")
             temp = self.memory.get_mememory_value(operand_1)
+            if self.memory.is_pointer(save_loc):
+                save_loc = self.memory.get_raw_memory_value(save_loc)
             self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
         elif operation == '==':
             temp = self.memory.get_mememory_value(operand_1) == self.memory.get_mememory_value(operand_2)
+
+            if temp == 'True':
+                temp = 'True'
+            else:
+                temp = 'False'
             self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
         elif operation == 'gosub':
-            temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)
-            self.memory.set_memory_value(save_loc,temp)
-            self.instruction_pointer += 1
+            self.jump_stack.append(self.instruction_pointer + 1)
+            self.instruction_pointer = self.functions_dict[save_loc]['init']
+            
+            
 
         elif operation == 'param':
-            temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)
+            
+            temp = self.memory.get_mememory_value(operand_1)
+            if self.memory.is_pointer(save_loc):
+                save_loc = self.memory.get_raw_memory_value(save_loc)
             self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
+
         elif operation == 'ver':
-            temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)
+            temp = self.memory.get_mememory_value(operand_2) <= self.memory.get_mememory_value(operand_1) <= self.memory.get_mememory_value(save_loc)
             self.memory.set_memory_value(save_loc,temp)
             self.instruction_pointer += 1
 
         elif operation == 'ver_dim':
-            temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)
-            self.memory.set_memory_value(save_loc,temp)
+            equal = self.memory.get_mememory_value(operand_1) == self.memory.get_mememory_value(operand_1)
+            if not equal:
+                raise IndexError("Not compatible matrix")
             self.instruction_pointer += 1
 
         elif operation == 'era':
-            temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)
-            self.memory.set_memory_value(save_loc,temp)
+            self.add_stack_segment(save_loc)
             self.instruction_pointer += 1
         
-        elif operation == 'end':
-            temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)
-            self.memory.set_memory_value(save_loc,temp)
-            self.instruction_pointer += 1
 
         elif operation == 'endfunc':
-            temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)
-            self.memory.set_memory_value(save_loc,temp)
-            self.instruction_pointer += 1
+            self.memory.end_func()
+            self.instruction_pointer = self.jump_stack[-1]
+            self.jump_stack.pop(-1)
 
         elif operation == 'write':
             print(self.memory.get_mememory_value(operand_1))
@@ -170,8 +222,19 @@ class VirtualMachine():
         
         elif operation == 'read':
             temp = input()
-            self.memory.set_memory_value(save_loc,temp)
+            self.memory.set_memory_value(operand_1,temp)
             self.instruction_pointer += 1
+
+        elif operation == 'return':
+
+            temp = self.memory.get_mememory_value(operand_1)
+            if self.memory.is_pointer(save_loc):
+                save_loc = self.memory.data_segment[save_loc]
+            self.memory.data_segment[save_loc] = temp
+            self.instruction_pointer += 1
+            
+
+            
 
         elif operation == '+mat':
             temp = self.memory.get_mememory_value(operand_1) >= self.memory.get_mememory_value(operand_2)

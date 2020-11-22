@@ -658,7 +658,7 @@ class Semantic():
         else:
             raise TypeError(f'No type recognized for "{var}"')
 
-    def insert_quadruple_action(self,action,operand_1=None):
+    def insert_quadruple_action(self,action,operand_1=None,return_id=None):
 
         if type(action) == str:
             if operand_1 == None:
@@ -687,8 +687,11 @@ class Semantic():
 
                 operand_1_addr = self.get_var_addr(operand_1)
 
+            if return_id != None:
+                return_id = self.get_var_addr(return_id)
+
             quadruple = {'operation': action, 'operand_1': operand_1_addr,
-                            'operand_2': None, 'save_loc': None}
+                            'operand_2': None, 'save_loc': return_id}
 
             self.quadruples.append(quadruple)
             # print(self.last_temp)
