@@ -4,6 +4,8 @@ import json
 from time import sleep
 import ast
 import numpy as np 
+import sys
+
 
 
 class VirtualMachine():
@@ -34,6 +36,35 @@ class VirtualMachine():
             return t
         raise ValueError(var)
 
+    def get_value_type_str(self,var):
+
+        if type(var) == int:
+            return 'int'
+        elif type(var) == float:
+            return 'float'
+        elif type(var) == str and var[0] == "'" and var[-1] == "'" and len(var) == 3:
+            return 'char'
+        elif type(var) == str and var[0] == '"' and var[-1] == '"':
+            return 'string'
+        elif type(var) == str:
+            if var == 'True' or var == 'False':
+                return 'bool'
+
+            return 'var'
+        else:
+            raise TypeError(f'No type recognized for "{var}"')
+
+    def get_addr_type(self, addr):
+
+
+        for scope in self.base_memory_dict.keys():
+            for type_var in self.base_memory_dict[scope].keys():
+                base = self.base_memory_dict[scope][type_var]
+                top = base + self.memory.MEMORY_SIZE -1
+                if base <= addr <= top:
+
+                    return type_var
+
 
     def run_code(self):
         self.open_dicts()
@@ -50,27 +81,37 @@ class VirtualMachine():
                 break
         
 
-    def dataType(self, str):
-        str=str.strip()
-        if len(str) == 0: return 'BLANK'
+    def dataType(self, str_in):
+        str_in=str_in.strip()
+        if len(str_in) == 0: return 'BLANK'
         try:
-            t=ast.literal_eval(str)
+            t=ast.literal_eval(str_in)
 
         except ValueError:
-            return 'TEXT'
+            if len(str_in) == 1:
+                return 'char'
+            else:   
+                return 'string'
         except SyntaxError:
-            return 'TEXT'
+            if len(str_in) == 1:
+                return 'char'
+            else:   
+                return 'string'
 
         else:
             if type(t) in [int, float, bool]:
                 if type(t) is int or type(t) is int:
-                    return 'INT'
+                    return 'int'
                 if t in set((True,False,"true", "false")):
-                    return 'BOOL'
+                    return 'bool'
                 if type(t) is float:
-                    return 'FLOAT'
+                    return 'float'
             else:
-                return 'TEXT' 
+                if len(str_in) == 1:
+                    return 'char'
+                else:
+                   
+                    return 'string' 
 
 
     
@@ -269,18 +310,29 @@ class VirtualMachine():
             self.jump_stack.pop(-1)
 
         elif operation == 'write':
-            print(self.memory.get_mememory_value(operand_1))
+            sys.stdout.write(str(self.memory.get_mememory_value(operand_1)))
+            sys.stdout.write(' ')
+            self.instruction_pointer += 1
+
+        elif operation == 'end_write':
+            sys.stdout.write('\n')
             self.instruction_pointer += 1
         
         elif operation == 'read':
             temp = input()
             temp2 = self.dataType(temp)
-            if temp2 == 'INT':
+            if temp2 == 'int':
                 temp = int(temp)
-            elif  temp2 == 'FLOAT':
+            elif  temp2 == 'flaot':
                 temp = float(temp)
-            elif temp2 == 'BOOL':
+            elif temp2 == 'bool':
                 temp = str(temp)
+            elif temp2 == 'char':
+                temp = str(temp)
+
+            print(temp2,self.get_addr_type(operand_1))
+            if temp2 != self.get_addr_type(operand_1):
+                raise TypeError('Not compatible input')
 
 
             self.memory.set_memory_value(operand_1,temp)
@@ -548,6 +600,8 @@ class VirtualMachine():
             NpMatrix = np.matrix(Matrix,dtype='float')
 
             determinant_mat = np.linalg.det(NpMatrix)
+
+            determinant_mat = float(determinant_mat)
 
             self.memory.set_memory_value(save_loc,determinant_mat)
 

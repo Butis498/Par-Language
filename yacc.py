@@ -235,6 +235,9 @@ class MyParser(object):
         '''
         writing : WRITE LPAREN  writing1 RPAREN SEMICOLONS
         '''
+        quadruple = {'operation':'end_write','operand_1':None,'operand_2':None,'save_loc':None}
+        self.semantic.quadruples.append(quadruple)
+
 
         
 
