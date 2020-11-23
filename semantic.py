@@ -248,8 +248,7 @@ class Semantic():
                     'operand_2': None, 'save_loc': func}
 
         self.quadruples.append(quadruple)
-        print(self.last_temp)
-        print(quadruple)
+    
 
     def insert_param_quadruple(self,operand_1,save_loc):
 
@@ -297,8 +296,7 @@ class Semantic():
                     'operand_2': None, 'save_loc': save_loc_addr}
 
         self.quadruples.append(quadruple)
-        print(self.last_temp)
-        print(quadruple)
+    
 
     
     def get_era(self,func):
@@ -343,8 +341,6 @@ class Semantic():
                     'operand_2': None, 'save_loc': subfunc}
 
         self.quadruples.append(quadruple)
-        # print(self.last_temp)
-        print(quadruple)
 
 
     def insert_func(self,function_name,function_type,init):
@@ -355,7 +351,6 @@ class Semantic():
         if function_type != 'void':
             self.insert_variable(function_name,function_type,'global')
             self.last_temp.pop(-1)
-            print(self.last_temp)
             
             glob_var_key =(function_name,self.get_var_addr(function_name))
             new_glob_var = self.variables_table[glob_var_key]
@@ -414,7 +409,6 @@ class Semantic():
 
 
 
-        print(self.last_temp,operation,operand_1,operand_2)
         if operand_1 == None:
             try:
 
@@ -494,8 +488,7 @@ class Semantic():
                 quadruple = {'operation': operation, 'operand_1': operand1_mem,
                             'operand_2': operand2_mem, 'save_loc': save_loc_mem}
                 self.quadruples.append(quadruple)
-                print(self.last_temp)
-                print(quadruple)
+              
             except KeyError as err:
                 raise KeyError('Var  does not exists in table, ' + str(err))
 
@@ -697,8 +690,7 @@ class Semantic():
                             'operand_2': None, 'save_loc': return_id}
 
             self.quadruples.append(quadruple)
-            # print(self.last_temp)
-            print(quadruple)
+            
     
     def insert_quadruple_asignation(self,save_loc,operand_1=None,return_val=False):
         
@@ -772,8 +764,7 @@ class Semantic():
             #self.last_temp.pop(-1)
 
             self.quadruples.append(quadruple)
-            print(self.last_temp)
-            print(quadruple)
+        
 
 
     def insert_quadruple_goto(self,quadruple_num=None,operand_1=None,goto_type=None):
@@ -822,8 +813,6 @@ class Semantic():
         
         quadruple = {'operation':goto,'operand_1':operand_1_addr,'operand_2':None,'save_loc':quadruple_num}
         self.quadruples.append(quadruple)
-        print(self.last_temp)
-        print(quadruple)
         self.goto_quadruples_stack.append(self.quadruples[-1])
 
 
@@ -961,13 +950,11 @@ class Semantic():
 
         quadruple = {'operation':'ver','operand_1':operand_1_addr,'operand_2':base_0_addr,'save_loc':index}
         self.quadruples.append(quadruple)
-        print(self.last_temp)
-        print(quadruple)
+    
 
 
     def insert_plus_quadruple(self,arr,operand_1=None):
         
-        print(arr,operand_1)
         if operand_1 == None:
             try:
                 operand_1 = list(self.last_temp[-1].keys())[0][0] # first item of dict and firt item of tuple which is var name
@@ -1017,13 +1004,11 @@ class Semantic():
 
         
         self.quadruples.append(quadruple)
-        print(self.last_temp)
-        print(quadruple)
+  
     
     def insert_times_quadruple(self,arr,operand_1=None):
 
-        print(arr,operand_1)
-        print(self.last_temp)
+ 
 
         if operand_1 == None:
             try:
@@ -1067,14 +1052,12 @@ class Semantic():
         m1 = self.variables_table[var]['m1']
         quadruple = {'operation':'*','operand_1':m1,'operand_2':operand_1_addr,'save_loc':save_loc_addr}
         self.quadruples.append(quadruple)
-        print(quadruple) 
-        print(self.last_temp)
+      
            
 
 
     def insert_plus_quadruple_dim2(self,arr,operand_1=None,dim1=None):
 
-        print('------------',arr,operand_1,dim1)
         if operand_1 == None:
             try:
                 operand_1 = list(self.last_temp[-1].keys())[0][0] # first item of dict and firt item of tuple which is var name
@@ -1120,8 +1103,7 @@ class Semantic():
         
         self.quadruples.append(quadruple)
         # 
-        print(self.last_temp) 
-        print(quadruple)
+     
                
 
 
@@ -1220,8 +1202,7 @@ class Semantic():
         quadruple = {'operation':'transpose','operand_1':mat_addr,'operand_2':None,'save_loc':temp_mat_key[1]}
         self.last_temp.append({temp_mat_key:self.variables_table[temp_mat_key]})
         self.quadruples.append(quadruple)
-        print(self.last_temp)
-        print(quadruple)
+ 
         
 
 
@@ -1244,8 +1225,7 @@ class Semantic():
         quadruple = {'operation':'inverse','operand_1':mat_addr,'operand_2':None,'save_loc':temp_mat_key[1]}
         self.last_temp.append({temp_mat_key:self.variables_table[temp_mat_key]})
         self.quadruples.append(quadruple)
-        print(self.last_temp)
-        print(quadruple)
+       
 
 
 
@@ -1273,8 +1253,7 @@ class Semantic():
         
         quadruple = {'operation':'determinant','operand_1':mat_addr,'operand_2':None,'save_loc':save_loc_addr}
         self.quadruples.append(quadruple)
-        print(self.last_temp)
-        print(quadruple)
+
 
 
 
@@ -1336,8 +1315,7 @@ class Semantic():
         quadruple =  {'operation':operation+ type_op,'operand_1':mat_1_addr,'operand_2':mat2_addr,'save_loc':temp_mat_key[1]}
         self.last_temp.append({temp_mat_key:self.variables_table[temp_mat_key]})
         self.quadruples.append(quadruple)
-        print(self.last_temp)
-        print(quadruple)
+      
 
 
     def matrix_asignation(self, mat_1, mat_2,arr=False):
@@ -1370,8 +1348,7 @@ class Semantic():
 
         quadruple =  {'operation':'='+type_op,'operand_1':mat2_addr,'operand_2':None,'save_loc':mat_1_addr}
         self.quadruples.append(quadruple)
-        print(self.last_temp)
-        print(quadruple)
+       
 
 
     
@@ -1401,7 +1378,7 @@ class Semantic():
         if res_type == 'pointer':
             key = (operand_1,operand_1_addr)
             res_type = self.variables_table[key]['pointer_type']
-            print(res_type)
+     
         
         return res_type
 

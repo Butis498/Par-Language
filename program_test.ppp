@@ -1,31 +1,33 @@
-
 program Ejemplo;
-var int x;
- int i;
- int j;
- int Arr[5][5];
-
+var 
+ int mat[3][3];
+ int mat2[3][3];
+ int x,y;
+ 
 
 
 main ()
-{
-j = 0;
- for i = 0 to 4 do{ 
-     for x = 0 to 4 do {
+{ 
+  mat[0][0] = 100101;
+  mat[0][1] = 22312;
+  mat[0][2] = 32133;
+  mat[1][0] = 4656457;
+  mat[1][1] = 75465;
+  mat[1][2] = 637376;
+  mat[2][0] = 657637;
+  mat[2][1] = 873637;
+  mat[2][2] = 7635679;
 
-         Arr[i + 0][x * 1 + 1 -1 ] = j;
-         j = j + 1;
-         x = x + 1;
-     }
-     i = i + 1;
- }
+x = mat$;
+write("El resultado del determinante es, : ", x);
 
-  for i = 0 to 4 do{ 
-     for x = 0 to 4 do {
-         write(Arr[i][x]);
-         x = x + 1;
-     }
-     i = i + 1;
- }
- 
+for x = 0 to 2 do{
+       for y = 0 to 2 do{
+           write(mat[x][y]);
+            y = y + 1; 
+
+       } 
+       x = x + 1;
+   }
+
 }
