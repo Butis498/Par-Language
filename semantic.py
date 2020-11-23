@@ -907,9 +907,7 @@ class Semantic():
                 
             except:
                 raise ValueError('No last temp value')
-        else:
-            operand_1_addr = self.get_var_addr(operand_1)
-            self.last_temp.append({(operand_1,operand_1_addr):self.variables_table[(operand_1,operand_1_addr)]})  
+        
         try:
             if self.get_value_type(operand_1) != 'var':
                 value = operand_1
@@ -917,7 +915,9 @@ class Semantic():
                 operand_1 = 'const'+str(self.const_var_count)
                 self.insert_variable(operand_1,type_1,'const',value = value)
                 self.const_var_count += 1
-                
+            else:
+                operand_1_addr = self.get_var_addr(operand_1)
+                self.last_temp.append({(operand_1,operand_1_addr):self.variables_table[(operand_1,operand_1_addr)]})      
 
         except TypeError as err:
 
