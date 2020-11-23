@@ -8,7 +8,7 @@ import os
 class Semantic():
     def __init__(self):
 
-        self.MEMORY_SPACE = 1000
+        self.MEMORY_SPACE = 5000
         self.next_memory_block = self.MEMORY_SPACE
         self.variables_table = {}
         self.functions_table = {}
@@ -727,8 +727,7 @@ class Semantic():
             else:
                 self.matrix_asignation(save_loc,operand_1,True)
 
-            self.last_temp.pop(-1)
-            self.last_temp.pop(-1)
+#            self.last_temp.pop(-1)
         else:
             operand_1_addr = self.get_var_addr(operand_1)
 

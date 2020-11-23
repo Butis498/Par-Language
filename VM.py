@@ -115,7 +115,7 @@ class VirtualMachine():
             self.instruction_pointer = save_loc
         elif operation == 'gotof':
 
-            if self.memory.get_mememory_value(operand_1) == "False" or False:
+            if self.memory.get_mememory_value(operand_1) == "False" or self.memory.get_mememory_value(operand_1) == False:
                 self.instruction_pointer = save_loc
             else:
                 self.instruction_pointer += 1
@@ -155,7 +155,7 @@ class VirtualMachine():
             # print(self.memory.get_mememory_value(operand_1) , self.memory.get_mememory_value(operand_2))
             # print(type(self.memory.get_mememory_value(operand_1)),type(self.memory.get_mememory_value(operand_2)))
 
-            temp = self.memory.get_mememory_value(operand_1) == 'True' or self.memory.get_mememory_value(operand_2) == 'True'
+            temp = self.memory.get_mememory_value(operand_1) == 'True'  or self.memory.get_mememory_value(operand_2) == 'True'
             # print('result: ',temp,type(temp))
             if temp == 'True' or temp:
                 temp = 'True'
@@ -168,7 +168,8 @@ class VirtualMachine():
 
 
         elif operation == '&':
-            temp = self.memory.get_mememory_value(operand_1) and self.memory.get_mememory_value(operand_2)
+            temp = self.memory.get_mememory_value(operand_1) == 'True'  and self.memory.get_mememory_value(operand_2) == 'True'
+            # print('result: ',temp,type(temp))
             if temp == 'True' or temp:
                 temp = 'True'
             else:
@@ -252,7 +253,7 @@ class VirtualMachine():
             self.instruction_pointer += 1
 
         elif operation == 'ver_dim':
-            equal = self.memory.get_mememory_value(operand_1) == self.memory.get_mememory_value(operand_1)
+            equal = self.memory.get_mememory_value(operand_1) == self.memory.get_mememory_value(operand_2)
             if not equal:
                 raise IndexError("Not compatible matrix")
             self.instruction_pointer += 1
@@ -274,15 +275,13 @@ class VirtualMachine():
         elif operation == 'read':
             temp = input()
             temp2 = self.dataType(temp)
-            print(temp2)
             if temp2 == 'INT':
                 temp = int(temp)
             elif  temp2 == 'FLOAT':
                 temp = float(temp)
             elif temp2 == 'BOOL':
-                temp = self.str2bool(temp)
-                print(type(temp))
-                print(temp)
+                temp = str(temp)
+
 
             self.memory.set_memory_value(operand_1,temp)
             self.instruction_pointer += 1
@@ -299,28 +298,175 @@ class VirtualMachine():
             
 
         elif operation == '+mat':
-            pass
+
+            size1 = self.memory.get_arr_size(operand_1)
+            
+            
+            
+            for i in range(size1):
+                value1 = self.memory.get_mememory_value(operand_1)
+                if value1 == None:
+                    value1 = 0
+                
+                value2 = self.memory.get_mememory_value(operand_2)
+                if value2 == None:
+                    value2 = 0
+                
+                temp = value1 + value2
+                self.memory.set_memory_value(save_loc,temp)
+                
+                operand_1 += 1
+                operand_2 += 1
+                save_loc += 1
+            
+            self.instruction_pointer += 1
+
          
         elif operation == '*mat':
-            pass
+            size1 = self.memory.get_arr_size(operand_1)
+            
+
+            
+            for i in range(size1):
+                value1 = self.memory.get_mememory_value(operand_1)
+                if value1 == None:
+                    value1 = 0
+                
+                value2 = self.memory.get_mememory_value(operand_2)
+                if value2 == None:
+                    value2 = 0
+                
+                temp = value1 * value2
+                self.memory.set_memory_value(save_loc,temp)
+                
+                operand_1 += 1
+                operand_2 += 1
+                save_loc += 1
+            
+            self.instruction_pointer += 1
+
 
         elif operation == '-mat':
-            pass
+            size1 = self.memory.get_arr_size(operand_1)
+            
+    
+            
+            for i in range(size1):
+                value1 = self.memory.get_mememory_value(operand_1)
+                if value1 == None:
+                    value1 = 0
+                
+                value2 = self.memory.get_mememory_value(operand_2)
+                if value2 == None:
+                    value2 = 0
+                
+                temp = value1 - value2
+                self.memory.set_memory_value(save_loc,temp)
+                
+                operand_1 += 1
+                operand_2 += 1
+                save_loc += 1
+            
+            self.instruction_pointer += 1
+
 
         elif operation == '=mat':
-            pass
+            size1 = self.memory.get_arr_size(save_loc)
+               
+            for i in range(size1):
+                value1 = self.memory.get_mememory_value(operand_1)
+
+                self.memory.set_memory_value(save_loc,value1)
+                
+                operand_1 += 1
+                save_loc += 1
+            
+            self.instruction_pointer += 1
+
 
         elif operation == '+arr':
-            pass
+            size1 = self.memory.get_arr_size(operand_1)
+            
+        
+            
+            for i in range(size1):
+                value1 = self.memory.get_mememory_value(operand_1)
+                if value1 == None:
+                    value1 = 0
+                
+                value2 = self.memory.get_mememory_value(operand_2)
+                if value2 == None:
+                    value2 = 0
+                
+                temp = value1 + value2
+                self.memory.set_memory_value(save_loc,temp)
+                
+                operand_1 += 1
+                operand_2 += 1
+                save_loc += 1
+            
+            self.instruction_pointer += 1
+
          
         elif operation == '*arr':
-            pass
+            size1 = self.memory.get_arr_size(operand_1)
+
+            
+            for i in range(size1):
+                value1 = self.memory.get_mememory_value(operand_1)
+                if value1 == None:
+                    value1 = 0
+                
+                value2 = self.memory.get_mememory_value(operand_2)
+                if value2 == None:
+                    value2 = 0
+                
+                temp = value1 * value2
+                self.memory.set_memory_value(save_loc,temp)
+                
+                operand_1 += 1
+                operand_2 += 1
+                save_loc += 1
+            
+            self.instruction_pointer += 1
 
         elif operation == '-arr':
-            pass
+            size1 = self.memory.get_arr_size(operand_1)
+            
+            
+
+            
+            for i in range(size1):
+                value1 = self.memory.get_mememory_value(operand_1)
+                if value1 == None:
+                    value1 = 0
+                
+                value2 = self.memory.get_mememory_value(operand_2)
+                if value2 == None:
+                    value2 = 0
+                
+                temp = value1 - value2
+                self.memory.set_memory_value(save_loc,temp)
+                
+                operand_1 += 1
+                operand_2 += 1
+                save_loc += 1
+            
+            self.instruction_pointer += 1
 
         elif operation == '=arr':
-            pass
+            size1 = self.memory.get_arr_size(save_loc)
+            
+            
+            for i in range(size1):
+                value1 = self.memory.get_mememory_value(operand_1)
+
+                self.memory.set_memory_value(save_loc,value1)
+                
+                operand_1 += 1
+                save_loc += 1
+            
+            self.instruction_pointer += 1
 
         elif operation == 'transpose':
             pass

@@ -3,13 +3,14 @@ import json
 class Memory():
 
     def __init__(self):
-        self.MEMORY_SIZE = 1000
+        self.MEMORY_SIZE = 5000
         self.data_segment = {}
         self.base_memory = None
         self.stack_segment = []
         self.ranges = []
         self.max_call_stack = 300
         self.curr_segment = 0
+        self.arr_sizes = [{}]
 
 
     def set_memory_value(self,addr,value,param=False):
@@ -31,6 +32,10 @@ class Memory():
         else:
             raise MemoryError(f'Not address found {addr}')
 
+
+    def get_arr_size(self,arr):
+
+        return self.arr_sizes[self.curr_segment][arr]
 
 
 
@@ -93,6 +98,8 @@ class Memory():
             arr_size = 1
             if 'size' in variables[key].keys():
                 arr_size = variables[key]['size']
+                size_arr = {addr:arr_size}
+                self.arr_sizes[self.curr_segment].update(size_arr)
 
             for _ in range(arr_size):
 
@@ -126,11 +133,14 @@ class Memory():
     def end_func(self):
 
         self.stack_segment.pop(-1)
+        self.arr_sizes.pop(-1)
         self.curr_segment -= 1
 
     
 
     def add_memeory_call(self,func:dict):
+
+        self.arr_sizes.append({})
 
         if len(self.stack_segment) >= self.max_call_stack:
             raise MemoryError('Segmentation fault')
@@ -146,6 +156,8 @@ class Memory():
             arr_size = 1
             if 'size' in variables[key].keys():
                 arr_size = variables[key]['size']
+                size_arr = {addr:arr_size}
+                self.arr_sizes[self.curr_segment].update(size_arr)
       
 
             for _ in range(arr_size):
