@@ -1,3 +1,4 @@
+
 program Ejemplo;
 var int x;
  int i;
@@ -12,7 +13,7 @@ j = 0;
  for i = 0 to 4 do{ 
      for x = 0 to 4 do {
 
-         Arr[i * 1 + 1 - 1][x * 1] = j;
+         Arr[i + 0][x * 1 + 1 -1 ] = j;
          j = j + 1;
          x = x + 1;
      }

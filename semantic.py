@@ -924,6 +924,7 @@ class Semantic():
                 operand_1 = 'const'+str(self.const_var_count)
                 self.insert_variable(operand_1,type_1,'const',value = value)
                 self.const_var_count += 1
+                t = True
 
             if not t:
                 operand_1_addr = self.get_var_addr(operand_1)

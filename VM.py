@@ -110,8 +110,6 @@ class VirtualMachine():
         operand_2 = quadruple['operand_2'] 
         save_loc = quadruple['save_loc']
 
-        #print(operation,operand_1,operand_2,save_loc)
-
 
         if operation == 'goto':
             self.instruction_pointer = save_loc
