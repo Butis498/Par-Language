@@ -414,7 +414,7 @@ class Semantic():
 
 
 
-        print(self.last_temp,operation)
+        print(self.last_temp,operation,operand_1,operand_2)
         if operand_1 == None:
             try:
 
@@ -464,7 +464,7 @@ class Semantic():
                self.matrix_operation(operation,operand_1,operand_2)
             else:
                 self.matrix_operation(operation,operand_1,operand_2,True)
-
+            
         else:
         
 
@@ -494,7 +494,7 @@ class Semantic():
                 quadruple = {'operation': operation, 'operand_1': operand1_mem,
                             'operand_2': operand2_mem, 'save_loc': save_loc_mem}
                 self.quadruples.append(quadruple)
-                # print(self.last_temp)
+                print(self.last_temp)
                 print(quadruple)
             except KeyError as err:
                 raise KeyError('Var  does not exists in table, ' + str(err))
@@ -913,6 +913,9 @@ class Semantic():
                 
             except:
                 raise ValueError('No last temp value')
+        else:
+                operand_1_addr = self.get_var_addr(operand_1)
+                self.last_temp.append({(operand_1,operand_1_addr):self.variables_table[(operand_1,operand_1_addr)]})
         
         try:
             if self.get_value_type(operand_1) != 'var':
@@ -962,7 +965,7 @@ class Semantic():
 
     def insert_plus_quadruple(self,arr,operand_1=None):
         
-
+        print(arr,operand_1)
         if operand_1 == None:
             try:
                 operand_1 = list(self.last_temp[-1].keys())[0][0] # first item of dict and firt item of tuple which is var name
@@ -1069,6 +1072,7 @@ class Semantic():
 
     def insert_plus_quadruple_dim2(self,arr,operand_1=None,dim1=None):
 
+        print('------------',arr,operand_1,dim1)
         if operand_1 == None:
             try:
                 operand_1 = list(self.last_temp[-1].keys())[0][0] # first item of dict and firt item of tuple which is var name
