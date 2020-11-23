@@ -156,6 +156,7 @@ class Memory():
     def add_memeory_call(self,func:dict):
 
         self.arr_sizes.append({})
+        self.index_sizes.append({})
 
         if len(self.stack_segment) >= self.max_call_stack:
             raise MemoryError('Segmentation fault')
