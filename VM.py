@@ -3,6 +3,8 @@ from memory import Memory
 import json
 from time import sleep
 import ast
+import numpy as np 
+
 
 class VirtualMachine():
 
@@ -247,7 +249,7 @@ class VirtualMachine():
 
         elif operation == 'ver':
             #print(self.memory.get_mememory_value(operand_2) , self.memory.get_mememory_value(operand_1) , self.memory.get_mememory_value(save_loc),'veeeeeeeeeeeeeeeeer')
-            temp = self.memory.get_mememory_value(operand_2) <= self.memory.get_mememory_value(operand_1) <= self.memory.get_mememory_value(save_loc)
+            temp = self.memory.get_mememory_value(operand_2) <= self.memory.get_mememory_value(operand_1) < self.memory.get_mememory_value(save_loc)
             if not temp:
                 raise IndexError('Out of index')
             self.instruction_pointer += 1
@@ -469,8 +471,62 @@ class VirtualMachine():
             self.instruction_pointer += 1
 
         elif operation == 'transpose':
-            pass
+            size_dict = self.memory.get_arr_indexes(operand_1)
+            print(size_dict)
+            index1 = size_dict['index_1']
+            index2 = size_dict['index_2']
+            start_mem = operand_1
+            save_loc_start  = save_loc 
+
+            Matrix = [[0 for x in range(index2)] for y in range(index1)]
+
+            for i in range(index2):
+                for j in range(index1):
+                    value = self.memory.get_mememory_value(operand_1)
+                    Matrix[j][i] = value
+                    operand_1 += 1
+
+            for i in range(index2):
+                for j in range(index1):
+
+                    self.memory.set_memory_value(save_loc,Matrix[j][i])
+                    save_loc += 1
+
+            self.instruction_pointer += 1
+
+            
+                    
+
+
 
         elif operation == 'inverse':
-            pass
+            
+            size_dict = self.memory.get_arr_indexes(operand_1)
+            index1 = size_dict['index_1']
+            index2 = size_dict['index_2']
+            start_mem = operand_1
+            save_loc_start  = save_loc 
 
+            Matrix = [[0 for x in range(index2)] for y in range(index1)] 
+
+            for i in range(index2):
+                for j in range(index1):
+                    value = self.memory.get_mememory_value(operand_1)
+                    Matrix[j][i] = value
+                    operand_1 += 1
+
+
+
+            NpMatrix = np.matrix(Matrix,dtype='float')
+
+            inverse_mat = np.linalg.inv(NpMatrix)
+
+            inverse_py = inverse_mat.tolist()
+
+            for i in range(index2):
+                for j in range(index1):
+
+                    self.memory.set_memory_value(save_loc,inverse_py[j][i])
+                    save_loc += 1
+
+            self.instruction_pointer += 1

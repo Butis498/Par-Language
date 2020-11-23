@@ -143,6 +143,8 @@ class Semantic():
 
         
         try:
+            if variable_type == 'string':
+                variable_type = 'char'
             new_variable = (variable_name, self.memory_count[scope][variable_type])
             base ,top = self.get_range(scope)
 
@@ -165,6 +167,10 @@ class Semantic():
             self.variables_table[new_variable].update(dims)
 
             if scope == 'const' and value != None:
+                if variable_type == 'char':
+                    value = value.replace('"','')
+                    value = value.replace("'",'')
+
                 value_const = {'value':value}
                 self.variables_table[new_variable].update(value_const)
 

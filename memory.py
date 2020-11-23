@@ -11,6 +11,7 @@ class Memory():
         self.max_call_stack = 300
         self.curr_segment = 0
         self.arr_sizes = [{}]
+        self.index_sizes = [{}]
 
 
     def set_memory_value(self,addr,value,param=False):
@@ -36,6 +37,11 @@ class Memory():
     def get_arr_size(self,arr):
 
         return self.arr_sizes[self.curr_segment][arr]
+
+
+    def get_arr_indexes(self,arr):
+
+        return self.index_sizes[self.curr_segment][arr]
 
 
 
@@ -101,6 +107,14 @@ class Memory():
                 size_arr = {addr:arr_size}
                 self.arr_sizes[self.curr_segment].update(size_arr)
 
+
+                if 'index_2' in variables[key].keys():
+                    index_1 = self.get_mememory_value(variables[key]['index_1'])
+                    index_2 = self.get_mememory_value(variables[key]['index_2'])
+                    index_dict = {addr:{'index_1':index_1,'index_2':index_2}}
+                    self.index_sizes[self.curr_segment].update(index_dict)
+               
+
             for _ in range(arr_size):
 
                 if addr not in self.data_segment.keys():
@@ -134,6 +148,7 @@ class Memory():
 
         self.stack_segment.pop(-1)
         self.arr_sizes.pop(-1)
+        self.index_sizes.pop(-1)
         self.curr_segment -= 1
 
     
@@ -158,6 +173,12 @@ class Memory():
                 arr_size = variables[key]['size']
                 size_arr = {addr:arr_size}
                 self.arr_sizes[self.curr_segment].update(size_arr)
+
+                if 'index_2' in variables[key].keys():
+                    index_1 = self.get_mememory_value(variables[key]['index_1'])
+                    index_2 = self.get_mememory_value(variables[key]['index_2'])
+                    index_dict = {addr:{'index_1':index_1,'index_2':index_2}}
+                    self.index_sizes[self.curr_segment].update(index_dict)
       
 
             for _ in range(arr_size):
