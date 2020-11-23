@@ -64,7 +64,7 @@ class MyLexer(object):
     t_DETERMINANT = r'\$'
     t_INVERSE = r'\?'
     t_CCHAR = r"'([A-Za-z]|[0-9])'"
-    t_STRING= r'"([A-Za-z]|[0-9])*"'
+    t_STRING= r'"([A-Za-z]|[0-9]|\ |\?|\+|\-|\*|\_|\-)*"'
 
     
     # A regular expression rule with some action code

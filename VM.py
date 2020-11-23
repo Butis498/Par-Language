@@ -472,11 +472,9 @@ class VirtualMachine():
 
         elif operation == 'transpose':
             size_dict = self.memory.get_arr_indexes(operand_1)
-            print(size_dict)
             index1 = size_dict['index_1']
             index2 = size_dict['index_2']
-            start_mem = operand_1
-            save_loc_start  = save_loc 
+
 
             Matrix = [[0 for x in range(index2)] for y in range(index1)]
 
@@ -489,7 +487,7 @@ class VirtualMachine():
             for i in range(index2):
                 for j in range(index1):
 
-                    self.memory.set_memory_value(save_loc,Matrix[j][i])
+                    self.memory.set_memory_value(save_loc,Matrix[i][j])
                     save_loc += 1
 
             self.instruction_pointer += 1
@@ -528,5 +526,31 @@ class VirtualMachine():
 
                     self.memory.set_memory_value(save_loc,inverse_py[j][i])
                     save_loc += 1
+
+            self.instruction_pointer += 1
+
+        elif operation == 'determinant':
+            
+            size_dict = self.memory.get_arr_indexes(operand_1)
+            index1 = size_dict['index_1']
+            index2 = size_dict['index_2']
+            start_mem = operand_1
+            save_loc_start  = save_loc 
+
+            Matrix = [[0 for x in range(index2)] for y in range(index1)] 
+
+            for i in range(index2):
+                for j in range(index1):
+                    value = self.memory.get_mememory_value(operand_1)
+                    Matrix[j][i] = value
+                    operand_1 += 1
+
+
+
+            NpMatrix = np.matrix(Matrix,dtype='float')
+
+            determinant_mat = np.linalg.det(NpMatrix)
+
+            self.memory.set_memory_value(save_loc,determinant_mat)
 
             self.instruction_pointer += 1

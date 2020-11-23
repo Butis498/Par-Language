@@ -1204,6 +1204,9 @@ class Semantic():
         index1 = var_obj['index_1']
         index2 = var_obj['index_2']
 
+        if index1 != index1:
+            raise IndexError('Matrix must be n x n dims')
+
         var_obj['index_1'] = index2
         var_obj['index_2'] = index1
 
@@ -1227,6 +1230,8 @@ class Semantic():
 
         index1 = var_obj['index_1']
         index2 = var_obj['index_2']
+
+
     
 
         temp_mat_key  = self.insert_temp_mat(mat_type,index1,index2,var_obj)
@@ -1240,7 +1245,7 @@ class Semantic():
 
     def determinant_modify(self,mat):
         mat_addr = self.get_var_addr(mat)
-        #mat_type = self.get_variable_type(mat)
+        mat_type = self.get_variable_type(mat)
         key = (mat,mat_addr)
         try:
             var_obj = copy.deepcopy(self.variables_table[key])
@@ -1250,8 +1255,17 @@ class Semantic():
         index1 = var_obj['index_1']
         index2 = var_obj['index_2']
 
+        if index1 != index1:
+            raise IndexError('Matrix must be n x n dims')
 
-        quadruple =  {'operation':'ver_dim','operand_1':index1,'operand_2':index2,'save_loc':None}
+        save_loc = 'temp'+str(self.temp_count)
+        temp_type = 'float'
+        self.insert_variable(save_loc,temp_type,'temp')
+        self.temp_count += 1
+        save_loc_addr = self.get_var_addr(save_loc)
+    
+        
+        quadruple = {'operation':'determinant','operand_1':mat_addr,'operand_2':None,'save_loc':save_loc_addr}
         self.quadruples.append(quadruple)
         print(self.last_temp)
         print(quadruple)
