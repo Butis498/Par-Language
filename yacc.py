@@ -16,7 +16,7 @@ class MyParser(object):
         quadruple_end =  {'operation':'end','operand_1':None,'operand_2':None,'save_loc':None}
         self.semantic.export_to_obj()
         self.semantic.quadruples.append(quadruple_end)
-        #self.semantic.print_quadruples()
+        self.semantic.print_quadruples()
 
     def p_expression_program_id(self,p):
         '''

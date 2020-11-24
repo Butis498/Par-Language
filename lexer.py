@@ -69,18 +69,20 @@ class MyLexer(object):
     
     # A regular expression rule with some action code
     
-
+    # float number regular expression
     def t_FNUM(self, t):
         r'[0-9]+(\.([0-9]+)?([eE][-+]?[0-9]+)?|[eE][-+]?[0-9]+)'
         t.value = float(t.value)
         return t
 
+    # variables regualar expression
     def t_ID(self, t):
         r'[A-Za-z]([A-Za-z]|[0-9])*'
         if t.value in self.reserved:
             t.type = self.reserved[ t.value ]
         return t
 
+    # int numbers regualar expression
     def t_INUM(self, t):
         r'\d+'
         t.value = int(t.value)    

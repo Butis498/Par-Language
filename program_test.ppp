@@ -1,33 +1,13 @@
 program Ejemplo;
-var 
- int mat[3][3];
- int mat2[3][3];
- int x,y;
- 
-
-
+var int x;
+float z;
+int arr[3];
 main ()
-{ 
-  mat[0][0] = 100101;
-  mat[0][1] = 22312;
-  mat[0][2] = 32133;
-  mat[1][0] = 4656457;
-  mat[1][1] = 75465;
-  mat[1][2] = 637376;
-  mat[2][0] = 657637;
-  mat[2][1] = 873637;
-  mat[2][2] = 7635679;
 
-x = mat$;
-write("El resultado del determinante es, : ", x);
+{
+x = 1;
+arr[0] = 1;
 
-for x = 0 to 2 do{
-       for y = 0 to 2 do{
-           write(mat[x][y]);
-            y = y + 1; 
-
-       } 
-       x = x + 1;
-   }
-
+z = 3.5;
+     write(x, z+2.4);
 }

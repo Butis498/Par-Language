@@ -62,11 +62,17 @@ class Semantic():
         self.insert_variable('const'+str(self.const_var_count),'int','const',value=0)
         self.const_var_count += 1
 
+
+    # Function to asing a memory base value,each time it is calles the value returned by the fuction is 
+    # Increased by the MEMORY_SIZE constat
     def asign_memory_base(self):
 
         self.next_memory_block += self.MEMORY_SPACE
         return self.next_memory_block
 
+
+    # Clears the variables table from local and temp variables, it means that when this fucntion is called
+    # the memory remains only with constant variable, it requires the memmory type as parameters, it does not have a return value.
     def reset_memory(self, memory_type):
 
         
@@ -83,17 +89,26 @@ class Semantic():
 
             raise TypeError('No memory type found, ' + str(err))
 
+
+    # This function inserts variables in the variables table the process of insertion deffers depending on the 
+    # data type if the var is an array it will insert a variable with other attributes types
+    # after the insertion the variable is set to the last_temp stack for future use
+    # it needs the variable name the variable type, the varible scope , as optional parametres it is requires to send 
+    # the dimension of the array in case it is an array, the dimensions of the second index of it is a matrix
+    # in case it is a constant the value of the constant, and last but not least the array configuration, in case the you need to send 
+    # a configuratrion manualy of the array 
+
     def insert_variable(self, variable_name, variable_type, scope, param=False, dim1=None,dim2=None,value=None,arr_conf=None):
 
         dims = {}
 
-        if arr_conf != None:
+        if arr_conf != None:# if there is a pre set configuratio for an array
             dims.update(arr_conf)
-        else:
+        else:# if there is not a pre configures array 
 
-            if dim1 != None:
+            if dim1 != None: # if it is not an array or a matrix
                 
-                if dim2 == None:
+                if dim2 == None: # it is not a matrix
 
                     index_1 = 'const'+str(self.const_var_count)
                     self.insert_variable(index_1,'int','const',value=dim1)
@@ -111,7 +126,7 @@ class Semantic():
 
                     dims.update({'m1':m1_addr,'index_1':index_1_addr,'size':size})
                     
-                else:
+                else: # its a matrix
                     index_1 = 'const'+str(self.const_var_count)
                     self.insert_variable(index_1,'int','const',value = dim1)
                     self.const_var_count += 1
@@ -143,18 +158,20 @@ class Semantic():
 
         
         try:
-            if variable_type == 'string':
+            if variable_type == 'string': 
                 variable_type = 'char'
             new_variable = (variable_name, self.memory_count[scope][variable_type])
             base ,top = self.get_range(scope)
 
+            # check if the variable exists in the variables table
             for var,addr in list(self.variables_table.keys()):
                 if base <= addr <= top and var == variable_name:
                     raise KeyError('Variable ' + var + ' already exists')
 
             variable = {new_variable: {'type': variable_type}}
 
-            if variable_type == 'pointer':
+
+            if variable_type == 'pointer':# variable is a pointer
                 
                 arr_base_addr = self.get_var_addr(self.current_arr[-1])
                 last_temp_type = self.get_addr_type(arr_base_addr)
@@ -184,11 +201,11 @@ class Semantic():
             if self.memory_count[scope][variable_type] >= top:
                 raise MemoryError('Out of memory variables')
             
-            if dim1 == None:
+            if dim1 == None: # it is not an array or a matrix
                 self.memory_count[scope][variable_type] += 1
             else:
-                if dim2 != None:
-                    if arr_conf == None:
+                if dim2 != None: # it is a matrix
+                    if arr_conf == None: # it has not a pre set conf for the array
                         self.memory_count[scope][variable_type] += dim1 * dim2
                     else:
                         key1 = self.get_const_value(arr_conf['index_1'])
@@ -212,6 +229,10 @@ class Semantic():
 
             raise KeyError('Can not insert variable, ' + str(err))
 
+
+    # Returns a dictionaty of the memeory that has been used between the las call of the same fuction
+    # this function has to be called in order to pass the memory usage to the obj file
+    # it does not needs a parameter it takes the current array from the object
     def get_func_memory_usage(self):
         res = {'temp':{'int':0,'float':0,'char':0,'bool':0,'pointer':0},
                 'local':{'int':0,'float':0,'char':0,'bool':0,'pointer':0}}
@@ -225,16 +246,16 @@ class Semantic():
                 base_const,top_const = self.get_range('const')
                 base_temp,top_temp = self.get_range('temp')
                 base_local,top_local = self.get_range('local')
-                if var[1] not in range(base_glob,top_glob) and var[1] not in range(base_const,top_const):
+                if var[1] not in range(base_glob,top_glob) and var[1] not in range(base_const,top_const): # if the variable is not a global or const 
                     
-                    if var[1] in range(base_temp,top_temp):
-                        if 'size' in self.variables_table[var].keys():
+                    if var[1] in range(base_temp,top_temp): # the variable is a temp
+                        if 'size' in self.variables_table[var].keys(): # if it is an array or a matrix
                             res['temp'][self.variables_table[var]['type']] += self.variables_table[var]['size']
                         else:
                             res['temp'][self.variables_table[var]['type']] += 1
 
-                    if var[1] in range(base_local,top_local):
-                        if 'size' in self.variables_table[var].keys():
+                    if var[1] in range(base_local,top_local): # the variable is a local
+                        if 'size' in self.variables_table[var].keys():# it is a array or a matrix
                             res['local'][self.variables_table[var]['type']] += self.variables_table[var]['size']
                         else:
                             res['local'][self.variables_table[var]['type']] += 1
@@ -242,6 +263,9 @@ class Semantic():
 
         return res
 
+    # the main purpose of this variable is to insert simple quadruples such as write or en ends
+    # it takes as parameters the operation to be done and the func in case it has one
+    # it does not have a return valur
     def insert_func_quadruple(self,operation,func=None):
 
         quadruple = {'operation': operation, 'operand_1': None,
@@ -250,10 +274,14 @@ class Semantic():
         self.quadruples.append(quadruple)
     
 
+    # Inserts a quadruple to asign a value to function it has two parameters the operand_1 which is the value to be asing in 
+    # save loc parameter which is the name of the saving location in case it is none it will get the last temp value
+    # it tales two parameters the operand1 which is the expression to be saved , and the save_loc which refres to the 
+    # global varible to be set
     def insert_param_quadruple(self,operand_1,save_loc):
 
-        if operand_1 == None:
-            try:
+        if operand_1 == None:# if the operand 1 is a temporal value 
+            try: # get the last temporal value
                 operand_1 = list(self.last_temp[-1].keys())[0][0] # first item of dict and firt item of tuple which is var name
                 operand_1_addr = list(self.last_temp[-1].keys())[0][1]
                 self.last_temp.pop(-1)
@@ -262,7 +290,7 @@ class Semantic():
                 raise ValueError('No last temp value')
         
         try:
-            if self.get_value_type(operand_1) != 'var':
+            if self.get_value_type(operand_1) != 'var': # if the value pased is not a variable
                 
                 value = operand_1
                 type_1 = self.get_value_type(operand_1)
@@ -282,7 +310,7 @@ class Semantic():
         
         validation_type_1 = self.variables_table[(operand_1,operand_1_addr)]['type']
 
-        if validation_type_1 == 'pointer':
+        if validation_type_1 == 'pointer': # if the type is a pointer get the pointer type
             validation_type_1 = self.variables_table[(operand_1,operand_1_addr)]['pointer_type']
 
         validation_type_2 = self.get_addr_type(save_loc_addr)
@@ -297,8 +325,9 @@ class Semantic():
 
         self.quadruples.append(quadruple)
     
-
-    
+    # returns a list of tuples of the parameters of a function
+    # it takes as a parameter the function name ans its main use is when 
+    #  calling a era quadruple
     def get_era(self,func):
         try:
             
@@ -317,12 +346,19 @@ class Semantic():
 
         return params
 
+
+    # Verify id the current fucntion has the correct numbers of parameters    
+    # it does not take any parameters, it takes the object current function
+    # and it does not return any value
     def verify_params_num(self):
         params_number = len(self.get_era(self.func_call_stack[-1]))
         params_give = self.param_count
-        if params_number != params_give:
+        if params_number != params_give: # if the stack of params is empty menas you have too much parameters
             raise IndexError('Missing Params in function '+ str(self.func_call_stack[-1]) )
 
+
+    # returns the current param memeory address 
+    # it takas as a parameter the fucntion name
     def get_curr_param_addr(self,func):
 
 
@@ -335,6 +371,9 @@ class Semantic():
         return var
 
 
+    # inserts a gosub quadruple
+    # it requires the function that has been called
+    # it does not have a return value
     def insert_gosub_quadruple(self,subfunc):
 
         quadruple = {'operation': 'gosub', 'operand_1': None,
@@ -342,7 +381,8 @@ class Semantic():
 
         self.quadruples.append(quadruple)
 
-
+    # inserts a function to the the functions table, it requieres a fuction name the function type and the quadruple
+    # in which it starts. It will also insert a global variable in case it is no a void function 
     def insert_func(self,function_name,function_type,init):
         
         if function_name in self.functions_table.keys():
@@ -361,6 +401,8 @@ class Semantic():
         self.functions_table.update(function)
 
 
+    # update func will update the parameters and the variables used for this function after the expresion for the arguments 
+    # are decalred 
     def update_func(self, function_name,param_count):
 
 
@@ -391,7 +433,9 @@ class Semantic():
 
             raise TypeError('Can not update function, ' + str(err))
 
-
+    
+    # this function will set the memory usage for each function after the quadruples of the functions have ended
+    # it takes as parameter the function to update the mnemory usage 
     def update_func_memory(self, function_name):
 
 
@@ -404,23 +448,29 @@ class Semantic():
 
             raise TypeError('Can not update function, ' + str(err))
 
+    
+    # this function inserts a operetaion to the quadruples, it can be an aritmetic operation or a boolean operation
+    # it takes four arguments, operation which is the operartion to inserted, operand_1 the first operand of the operation in case
+    # it is a None it will get the last temporal value, the operand_2 is the second value to execute the operation if the value is null 
+    # it will get the last temporal value, and save loc is the location to save the operation result in case it is null it will genreate
+    # a temporal value that will be inserted into the last_temp stack
 
     def insert_quadruple_operation(self, operation, operand_1=None, operand_2=None, save_loc=None):
 
 
 
-        if operand_1 == None:
+        if operand_1 == None: # if none get last temp value
             try:
 
                 operand_1 = list(self.last_temp[-1].keys())[0][0] # first item of dict and firt item of tuple which is var name
                 operand_1_addr = list(self.last_temp[-1].keys())[0][1]
-                self.last_temp.pop(-1)
+                self.last_temp.pop(-1) # pop last temp value
                               
             except:
                 raise ValueError('No last temp value')
         
         
-        if operand_2 == None:
+        if operand_2 == None: # if non get last temp value and pop the temporal value
             try:
                 operand_2 = list(self.last_temp[-1].keys())[0][0] # first item of dict and firt item of tuple which is var name
                 operand_2_addr = list(self.last_temp[-1].keys())[0][1]
@@ -430,7 +480,7 @@ class Semantic():
         
 
         try:
-            if self.get_value_type(operand_1) != 'var':
+            if self.get_value_type(operand_1) != 'var': # if the operand is not a varible
                 
                 value = operand_1
                 type_1 = self.get_value_type(operand_1)
@@ -439,7 +489,7 @@ class Semantic():
                 self.const_var_count += 1
                 self.last_temp.pop(-1)
 
-            if self.get_value_type(operand_2) != 'var':
+            if self.get_value_type(operand_2) != 'var': # if the operand is not a varible
                 value = operand_2
                 type_2 = self.get_value_type(operand_2)
                 operand_2 = 'const'+str(self.const_var_count)
@@ -466,7 +516,7 @@ class Semantic():
             operand_2_addr = self.get_var_addr(operand_2)
 
             
-            if save_loc == None:
+            if save_loc == None: # if there is not a save locarion inset a temporal value to save the result
 
                 #operand_1_scope = self.get_var_scope((operand_1,operand_1_addr))
                 #operand_2_scope = self.get_var_scope((operand_2,operand_2_addr))
@@ -493,6 +543,10 @@ class Semantic():
                 raise KeyError('Var  does not exists in table, ' + str(err))
 
     
+
+    # Verify if an operation between arrays or matrixes are compatible if it is not compatible
+    # it wil end the compilation and if they are compatible it will continue the compilation
+    # it takes as parameter the two array or matrixes which are gonna be evaluated
     def verify_arr_operation(self,operand_1,operand_2):
 
         if operand_1 == None or operand_2 == None:
@@ -503,16 +557,16 @@ class Semantic():
 
 
 
-        if self.is_arr(operand_1) and self.is_arr(operand_2):
+        if self.is_arr(operand_1) and self.is_arr(operand_2): # if both operand are arrays or matrix
 
             
-            if self.same_dims(operand_1,operand_2):
+            if self.same_dims(operand_1,operand_2): # check if the matrix or array has the same dimension
 
                 key1 = (operand_1,operand_1_addr)
                 key2 = (operand_2,operand_2_addr)
 
                 try:
-                    if self.is_mat(operand_1) and self.is_mat(operand_2):
+                    if self.is_mat(operand_1) and self.is_mat(operand_2): # if both operands are matrixes
                         index1 = self.variables_table[key1]['index_1']
                         index2 = self.variables_table[key2]['index_1']
 
@@ -528,6 +582,8 @@ class Semantic():
                         self.quadruples.append(index1_comp)
                         self.quadruples.append(index2_comp)
                     else:
+
+                        # In this section we check that bouth of them have compatible strutures
 
                         if self.is_mat(operand_1) and self.is_arr(operand_2):
                             raise TypeError('Incompatible operation')
@@ -559,49 +615,47 @@ class Semantic():
                 raise TypeError(f'Incompatible operation "{operand_1}" and "{operand_2}"')
 
 
+    # returns a string with the type result of two operand with certain operation 
+    # based in the sematic cube
+    # it requeires three parameters , the operation to be done, and the two operand 
     def get_var_type(self,operation, var1,var2):
         is_pointer = False
 
         try:
             type_1 = self.variables_table[var1]['type']
 
-            if type_1 == 'pointer':
+            if type_1 == 'pointer': # if it is a pointer get the pointer type
                 type_1 = self.variables_table[var1]['pointer_type']
                 is_pointer = True
 
             type_2 = self.variables_table[var2]['type']
 
-            if type_2 == 'pointer':
+            if type_2 == 'pointer': # if it is a pointer get the pointer type
                 type_2 = self.variables_table[var1]['pointer_type']
                 is_pointer = True
         except KeyError as err:
             raise KeyError(str(err) + ' does not exists')
 
         try:
-            type_res_var = semantic_cube[type_1][operation][type_2]
+            type_res_var = semantic_cube[type_1][operation][type_2] # check in the semantic cube if the operartion is possible
+                                                                    # and return the data type of the result
             return type_res_var,is_pointer
         except KeyError :
             raise TypeError('Not supported type for operands '+ var1[0] + ' and ' + var2[0])
 
+
+    # returns the range of addresses of a certain scope 
+    # it takes as parameter the scope that will be evaluated to get the range
     def get_range(self,scope):
         base = list(self.variables_base_memory[scope].values())[0]
         top = base + self.MEMORY_SPACE * len(self.variables_base_memory[scope]) -1
         return base,top
 
 
-    def get_var_scope(self,var:tuple):
 
-        try:
-            if var in self.variables_table.keys():
-                for scope in self.variables_base_memory.keys():
-                    base,top = self.get_range(scope)
-                    if base <= var[1] <= top:
-                        return scope
-
-        except KeyError:
-            raise ValueError('Cant get var scope '+ str(var[0]))
-
-
+    # returns the variable address it will take first the local varibles if it is not defined in the local scope 
+    # it will search in the global scope if it is not in the global scope 
+    # it requires the variable name as a parameter
     def get_var_addr(self,var_name):
 
         base_local,top_local = self.get_range('local')
@@ -623,12 +677,21 @@ class Semantic():
                 return addr
         
         raise KeyError(f"No variable '{var_name}' found on scope")
-                
+
+
+    # this function will reset the temp memory and will set the temp counter to 0 again 
+    # it does not requiere any argument 
+    # and it does not returns any value 
 
     def end_expression(self):
 
         self.temp_count = 0
         self.reset_memory('temp')
+
+
+    # the main purpose of this function is to reste the memory count in case a function ends 
+    # it does not require any parameters 
+    # and it does not returns any values 
 
     def end_function(self):
 
@@ -636,6 +699,9 @@ class Semantic():
         self.reset_memory('temp')
         self.reset_memory('local')
 
+    # Returns the value type of a constatn in form a string , it requieres the the constant value
+    # if it is a varible it wil return the word var 
+    
     def get_value_type(self,var):
 
         if type(var) == int:
@@ -654,10 +720,14 @@ class Semantic():
         else:
             raise TypeError(f'No type recognized for "{var}"')
 
+
+    # This fuction inserts an action quadruple such as write or write, it requeires 
+    # tha action to be done, the first operand, if it is None it will recibe the last temporal value
+    # and it will requiere the return id in case of a param asignation to a temporal value
     def insert_quadruple_action(self,action,operand_1=None,return_id=None):
 
         if type(action) == str:
-            if operand_1 == None:
+            if operand_1 == None: # if operand is a temporal value
                 try:
                     operand_1 = list(self.last_temp[-1].keys())[0][0] # first item of dict and firt item of tuple which is var name
                     operand_1_addr = list(self.last_temp[-1].keys())[0][1]
@@ -667,8 +737,8 @@ class Semantic():
                     raise ValueError('No last temp value for action type')
             else:
 
-                try:
-                    if self.get_value_type(operand_1) != 'var':
+                try: 
+                    if self.get_value_type(operand_1) != 'var': # if varible is a constant
                         value = operand_1
                         type_1 = self.get_value_type(operand_1)
                         operand_1 = 'const'+str(self.const_var_count)
@@ -683,7 +753,7 @@ class Semantic():
 
                 operand_1_addr = self.get_var_addr(operand_1)
 
-            if return_id != None:
+            if return_id != None: # if it is param igualation to a global variable of a fucntion 
                 return_id = self.get_var_addr(return_id)
 
             quadruple = {'operation': action, 'operand_1': operand_1_addr,
@@ -691,10 +761,12 @@ class Semantic():
 
             self.quadruples.append(quadruple)
             
-    
+    # This fucntion asings the a value to a varible by a quadruple, it takes saving location where the value will be stpred
+    #  the second argument is the value to be stores in case it is None it will take the last temporal value
+    # it does not have a return value
     def insert_quadruple_asignation(self,save_loc,operand_1=None,return_val=False):
         
-        if operand_1 == None:
+        if operand_1 == None: # if operand is a temp value
             try:
                 operand_1 = list(self.last_temp[-1].keys())[0][0] # first item of dict and firt item of tuple which is var name
                 operand_1_addr = list(self.last_temp[-1].keys())[0][1]
@@ -704,7 +776,7 @@ class Semantic():
                 raise ValueError('No last temp value')
         
         try:
-            if self.get_value_type(operand_1) != 'var':
+            if self.get_value_type(operand_1) != 'var': # if operand is a constant
                 value = operand_1
                 type_1 = self.get_value_type(operand_1)
                 operand_1 = 'const'+str(self.const_var_count)
@@ -719,8 +791,8 @@ class Semantic():
 
         self.verify_arr_operation(save_loc,operand_1)
 
-        if self.is_arr(save_loc) and self.is_arr(operand_1):
-            if self.is_mat(save_loc) and self.is_mat(operand_1):
+        if self.is_arr(save_loc) and self.is_arr(operand_1): # if operands are arrays or matrix
+            if self.is_mat(save_loc) and self.is_mat(operand_1): # if operand are matrixes
                self.matrix_asignation(save_loc,operand_1)
             else:
                 self.matrix_asignation(save_loc,operand_1,True)
@@ -736,7 +808,7 @@ class Semantic():
             
             
 
-            if save_loc == None:
+            if save_loc == None: # if there is not a save value create a temporal value
     
                 save_loc = 'temp'+str(self.temp_count)
                 temp_type = validation_type_1
@@ -751,8 +823,7 @@ class Semantic():
                 validation_type_2 = self.variables_table[(save_loc,save_loc_addr)]['pointer_type']
 
             try:
-                
-                semantic_cube[validation_type_1]['='][validation_type_2]
+                semantic_cube[validation_type_2]['='][validation_type_1]
             except:
                 raise TypeError(f'Incompatible Types {validation_type_1} and {validation_type_2}')
 
@@ -765,7 +836,11 @@ class Semantic():
 
             self.quadruples.append(quadruple)
         
-
+    # this function generates goto quadruple,it takes the quadruples to jump, it could be None and be set later on 
+    # as the second parameter it takes the operand 1 which is a boolean expresion to be evaluates in the condition of 
+    # the goto in case it exists , and the last parameter is the goto type in case it is a False it will insert a gotof
+    # in case it is true it will insert a gotof and if it is none it will insert a goto
+    # it does not have a return value
 
     def insert_quadruple_goto(self,quadruple_num=None,operand_1=None,goto_type=None):
 
@@ -816,6 +891,9 @@ class Semantic():
         self.goto_quadruples_stack.append(self.quadruples[-1])
 
 
+    # this function returns a variable type in form of a string, it searches the addr value in the different rawnges of the base 
+    # memeory for each type and scope, it requieres as a parameter the variable to be serach
+
     def get_variable_type(self, var):
 
         addr = self.get_var_addr(var)
@@ -831,6 +909,10 @@ class Semantic():
                         type_var = self.variables_table[(var,addr)]['pointer_type']
                     return type_var
 
+    
+    
+    # returns the type of the address of a variable in case it does not exists it will retuen error
+    # as a parameter it requieres the address to serch in the ranges 
     def get_addr_type(self, addr):
 
 
@@ -848,6 +930,10 @@ class Semantic():
                         type_var = self.variables_table[(var,addr)]['pointer_type']
                     return type_var
 
+
+    # This is an auxiliar function to help as print formated the json data converting a tuple to a string
+    # it takes as a parameter a the data to convert the keys into strings
+    # it returns the data formated 
     def key_to_json(self,data):
         if data is None or isinstance(data, (bool, int, str)):
             return data
@@ -855,6 +941,7 @@ class Semantic():
             return str(data)
         raise TypeError
 
+    
     def to_json(self,data):
         if data is None or isinstance(data, (bool, int, tuple, range, str, list)):
             return data
@@ -865,6 +952,8 @@ class Semantic():
         raise TypeError
 
 
+    # simple function to pint the quadruples the variables and the functions tables in thath order and formated
+    # it does not take any arguments and it is call when the compiling ends
     def print_quadruples(self):
 
         print('============ Quadruples table =============')
@@ -890,13 +979,16 @@ class Semantic():
                                                             separators=(',', ': ')))
 
 
-
+    # function to insert a ver quadruple which compare a value if it is in a range of the index and the base
+    # it takes as parameters the array name to get the the dims, as the second parameter it will take the value to evaluate 
+    # if is inside the range, and as the las paramterr is the dimension in which is currentyly working is it is true it means
+    # that is currenty working on the firtst dimension, in case it is false it means it is working on the second dimension
 
     def insert_ver_quadruple(self,arr_name,operand_1=None,dim1=True):
         
         t = False
 
-        if operand_1 == None:
+        if operand_1 == None: # if expression on the the array is None it will take the last value
             try:
                 operand_1 = list(self.last_temp[-1].keys())[0][0] # first item of dict and firt item of tuple which is var name
                 operand_1_addr = list(self.last_temp[-1].keys())[0][1]
@@ -952,7 +1044,9 @@ class Semantic():
         self.quadruples.append(quadruple)
     
 
-
+    # this function inserts a sum quadruple, but is not a common sum quadruple it takes as parameter the aray and the expresion
+    # this plus fuction is meant to be used in to add the base addr and the index expresion
+    # it does no return any value
     def insert_plus_quadruple(self,arr,operand_1=None):
         
         if operand_1 == None:
@@ -1006,6 +1100,9 @@ class Semantic():
         self.quadruples.append(quadruple)
   
     
+    # Inserts a multiplication quadruple for the m value and the array expression, it takes as parameters two values 
+    # the array that we are indexing and the expression to be multiply by the m values
+    # it does not have return value
     def insert_times_quadruple(self,arr,operand_1=None):
 
  
@@ -1054,7 +1151,9 @@ class Semantic():
         self.quadruples.append(quadruple)
       
            
-
+    # Inserts a sum quadruple, meant to use to sum the previous indexed value to the the seccond dimension value 
+    # it takes as parameters the array to be indexed the expression of the second index of the matrix and the value of
+    # the previos index, it does not have a return value
 
     def insert_plus_quadruple_dim2(self,arr,operand_1=None,dim1=None):
 
@@ -1105,7 +1204,8 @@ class Semantic():
         # 
      
                
-
+    # Determines if the variable is an array or matrix , it takes as parameter the tha array name
+    # it returns a true in case the variable is an array or matrix, false in case it not
 
     def is_arr(self,arr_name):
 
@@ -1123,6 +1223,11 @@ class Semantic():
         else :
 
             return False
+
+
+    #  Determines if the variable is a matrix , it takes as parameter the tha variable name
+    # it returns a true in case the variable is a matrix, false in case it not
+
 
     def is_mat(self,mat_name):
 
@@ -1142,6 +1247,9 @@ class Semantic():
 
             return False
 
+
+    # function to determine if the arrays or matrixes have the same dimension , it takes as parameters the name of the two varibles to 
+    # evaluate, in case they are the same dimension it would return true in case they have differnt dimension it would return false
     def same_dims(self,arr_1,arr_2):
 
         arr_1_addr = self.get_var_addr(arr_1)
@@ -1167,6 +1275,9 @@ class Semantic():
 
         return True
 
+
+    # this function will apply a modifier to a matrix in case it is one of the modifiers valids, inverse of a matrix , determinant of a matrix 
+    # or the transpose of a matrix , it does not have a return value
     def apply_modifier(self,mat,mod):
         
         if mod == '?':
@@ -1177,6 +1288,11 @@ class Semantic():
             self.determinant_modify(mat)
         else:
             raise KeyError('modifier not found')
+
+
+    # This funciton has two main parts, first it wil generate a temporal matrix with the 
+    # requierd dims for the modifier , after this it will insert a modifier quadruple
+    # it does no have a return value 
 
     def transpose_modify(self,mat):
         
@@ -1205,7 +1321,9 @@ class Semantic():
  
         
 
-
+    # This funciton has two main parts, first it wil generate a temporal matrix with the 
+    # requierd dims for the modifier , after this it will insert a modifier quadruple
+    # it does no have a return value 
     def inverse_modify(self,mat):
         mat_addr = self.get_var_addr(mat)
         mat_type = self.get_variable_type(mat)
@@ -1219,7 +1337,8 @@ class Semantic():
         index2 = var_obj['index_2']
 
 
-    
+        if self.get_variable_type(mat) != 'float':
+            raise TypeError('Can only inverse a float matrix')
 
         temp_mat_key  = self.insert_temp_mat(mat_type,index1,index2,var_obj)
         quadruple = {'operation':'inverse','operand_1':mat_addr,'operand_2':None,'save_loc':temp_mat_key[1]}
@@ -1228,7 +1347,9 @@ class Semantic():
        
 
 
-
+    # This funciton has two main parts, first it wil generate a temporal matrix with the 
+    # requierd dims for the modifier , after this it will insert a modifier quadruple
+    # it does no have a return value 
     def determinant_modify(self,mat):
         mat_addr = self.get_var_addr(mat)
         mat_type = self.get_variable_type(mat)
@@ -1256,7 +1377,9 @@ class Semantic():
 
 
 
-
+    # Inserts a temporal matrix in the the variables table for usage in the modifiers 
+    # it takes as parameters the matrix type , and as optional values the dimension of the matrix in case they are None
+    # it is necesay to send the array or matrix configuration in the last parameter 
 
     def insert_temp_mat(self,mat_type,dim1=None, dim2=None,arr_conf=None):
 
@@ -1268,6 +1391,11 @@ class Semantic():
 
         return newVar
     
+
+
+    # This funcitno provides matrix and array operatinos quadruples menat to use in overloads operations
+    # it takes as parameters the operation which has a limitation of +,-,* and the two matrixs or arrays 
+    # the make the operation, and the last parameter takes in account if the operations are array as defaoult it is false
 
     def matrix_operation(self,operation, mat_1, mat_2, arr=False):
         
@@ -1317,6 +1445,9 @@ class Semantic():
         self.quadruples.append(quadruple)
       
 
+    # Function to asing one matrix or array to other arary or matrix respectebly menas tha you can only asing a mtrix to a 
+    # matrix and an array to an array , it take 3 parameters , the first are  two matrixs or arrays 
+    # which are the operators, and the last parameter takes in account if the operations are array as defaoult it is false
 
     def matrix_asignation(self, mat_1, mat_2,arr=False):
         
@@ -1351,7 +1482,9 @@ class Semantic():
        
 
 
-    
+    # This fucntion will return the value or varible type in form of string 
+    # if it is a pointer it will return the pointer type, it takes the expression to be evaluated
+    # if the expressio is none it will get the last temporal value
     def check_exp_type(self, operand_1):
         
         if operand_1 == None:
@@ -1383,6 +1516,10 @@ class Semantic():
         return res_type
 
 
+
+    # This fucntion returns the constant value of based on an address, if it does not exists it will 
+    # return None other wise it will return the value saved on the constats table
+    # it takes as parameter the address to search 
     def get_const_value(self,addr):
 
         for name,addr_ in list(self.variables_table.keys()):
@@ -1392,6 +1529,10 @@ class Semantic():
         
         return None
 
+
+    # This fucntion exports the constants, the functions table the quadruples and the base memory table into 
+    # binary object files in the obj folder if it does not exists it will create this directory
+    # it does not have a return value and it is used when the compilation has ended
     def export_to_obj(self):
         if not os.path.exists('obj'):
             os.makedirs('obj')

@@ -20,40 +20,34 @@ class VirtualMachine():
         self.main_id = main_id
         self.jump_stack = []
 
+
+    # Functino to start the data sectment base on the obj binary files created on the class
+    # it does not takes any parameters and does not have a return value
     def start_data_segment(self):
         func = self.functions_dict[self.main_id]
         self.memory = Memory()
         self.memory.set_memory(func,self.base_memory_dict,self.variables_dict)
 
 
+    # add memory dictionary to the stack segment based on the function name
+    # this fucntion name is stored in the fucntion table from the class dictionary
+    # it is called when a function is called in the execution
     def add_stack_segment(self,func_name):
         func = self.functions_dict[func_name]
         self.memory.add_memeory_call(func)
 
+
+    
     def get_value_type(self,var):
         t = getattr(__builtins__, var)
         if isinstance(t, type):
             return t
         raise ValueError(var)
 
-    def get_value_type_str(self,var):
+    
 
-        if type(var) == int:
-            return 'int'
-        elif type(var) == float:
-            return 'float'
-        elif type(var) == str and var[0] == "'" and var[-1] == "'" and len(var) == 3:
-            return 'char'
-        elif type(var) == str and var[0] == '"' and var[-1] == '"':
-            return 'string'
-        elif type(var) == str:
-            if var == 'True' or var == 'False':
-                return 'bool'
-
-            return 'var'
-        else:
-            raise TypeError(f'No type recognized for "{var}"')
-
+    # returns the type of the address of a variable in case it does not exists it will retuen error
+    # as a parameter it requieres the address to serch in the ranges 
     def get_addr_type(self, addr):
 
 
@@ -65,7 +59,8 @@ class VirtualMachine():
 
                     return type_var
 
-
+    # this fucntion starts the code execuion by reading the quadruples until the it detects a end operation
+    # it has no return value and it no parameters 
     def run_code(self):
         self.open_dicts()
         self.start_data_segment()
@@ -114,12 +109,14 @@ class VirtualMachine():
                     return 'string' 
 
 
-    
+    # converts string to a bool
+    # as a parameter it take a string which will be converted into a python bool
     def str2bool(self, v):
         return v.lower() in ("yes", "true", "t", "1")
         
 
-
+    # Opens the binary dictionarys located in the obj folder and asing the values in
+    # the object attributes, it does not have a return value and does not have any parameters
     def open_dicts(self):
         
         try:
@@ -143,7 +140,10 @@ class VirtualMachine():
 
             raise SystemError('Can not open files to execute')
 
+    
 
+    # This fucntion is a big switch that will execute the quadruples depending on the operatino 
+    # It takes as a paramerter the quadruple to be executes, after each action is taken it will move the instruction pointer 
     def make_action(self,quadruple:dict):
 
         operation = quadruple['operation']
