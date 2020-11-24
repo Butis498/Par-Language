@@ -631,7 +631,7 @@ class Semantic():
             type_2 = self.variables_table[var2]['type']
 
             if type_2 == 'pointer': # if it is a pointer get the pointer type
-                type_2 = self.variables_table[var1]['pointer_type']
+                type_2 = self.variables_table[var2]['pointer_type']
                 is_pointer = True
         except KeyError as err:
             raise KeyError(str(err) + ' does not exists')

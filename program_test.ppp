@@ -1,9 +1,25 @@
 program Ejemplo;
-var int x;
-float z;
-main ()
+var 
+ int arr[20];
+ int mat[10][5];
+ int y,b,x;
+ int mat2[10][6];
 
-{
-read(x);
-write(x);
+
+main ()
+{ 
+    b = 0;
+   for y = 0 to 19 do{
+       arr[y] = b;
+       y = y + 1;
+       b = b + 1; 
+   }
+
+   read(x);
+   for y = 0 to 19 do{
+       if (x == arr[y]) then{
+           write("Aqui esta",x, "en la pos",y);
+       }
+       y = y + 1;
+   }
 }
