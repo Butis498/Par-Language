@@ -63,8 +63,8 @@ class Semantic():
         self.const_var_count += 1
 
 
-    # Function to asing a memory base value,each time it is calles the value returned by the fuction is 
-    # Increased by the MEMORY_SIZE constat
+    # Function to assing a memory base value,each time it is called the value returned by the fuction is 
+    # Increased by the MEMORY_SIZE constant
     def asign_memory_base(self):
 
         self.next_memory_block += self.MEMORY_SPACE
@@ -230,9 +230,9 @@ class Semantic():
             raise KeyError('Can not insert variable, ' + str(err))
 
 
-    # Returns a dictionaty of the memeory that has been used between the las call of the same fuction
-    # this function has to be called in order to pass the memory usage to the obj file
-    # it does not needs a parameter it takes the current array from the object
+    # Returns a dictionary of the memory that has been used between the last call of the same fuction
+    # this function has to be called in order to pass the memory usage to the obj. file
+    # it does not need a parameter, it takes the current array from the object
     def get_func_memory_usage(self):
         res = {'temp':{'int':0,'float':0,'char':0,'bool':0,'pointer':0},
                 'local':{'int':0,'float':0,'char':0,'bool':0,'pointer':0}}
@@ -263,9 +263,9 @@ class Semantic():
 
         return res
 
-    # the main purpose of this variable is to insert simple quadruples such as write or en ends
+    # the main purpose of this function is to insert simple quadruples such as write or ends
     # it takes as parameters the operation to be done and the func in case it has one
-    # it does not have a return valur
+    # it does not have a return value
     def insert_func_quadruple(self,operation,func=None):
 
         quadruple = {'operation': operation, 'operand_1': None,
@@ -274,9 +274,9 @@ class Semantic():
         self.quadruples.append(quadruple)
     
 
-    # Inserts a quadruple to asign a value to function it has two parameters the operand_1 which is the value to be asing in 
-    # save loc parameter which is the name of the saving location in case it is none it will get the last temp value
-    # it tales two parameters the operand1 which is the expression to be saved , and the save_loc which refres to the 
+    # Inserts a quadruple to assing a value to a function global variable , it has two parameters the operand_1 which is the value to be asing in 
+    # and the save_loc parameter which is the name of the saving location in case it is none it will get the last temp value
+    # it takes two parameters: the operand1 which is the expression to be saved , and the save_loc which refers to the 
     # global varible to be set
     def insert_param_quadruple(self,operand_1,save_loc):
 
@@ -326,8 +326,8 @@ class Semantic():
         self.quadruples.append(quadruple)
     
     # returns a list of tuples of the parameters of a function
-    # it takes as a parameter the function name ans its main use is when 
-    #  calling a era quadruple
+    # it takes as a parameter the function name and its main use is when 
+    # calling a era quadruple
     def get_era(self,func):
         try:
             
@@ -891,8 +891,8 @@ class Semantic():
         self.goto_quadruples_stack.append(self.quadruples[-1])
 
 
-    # this function returns a variable type in form of a string, it searches the addr value in the different rawnges of the base 
-    # memeory for each type and scope, it requieres as a parameter the variable to be serach
+    # this function returns a variable type in form of a string, it searches the address value in the different ranges of the base 
+    # memory for each type and scope, it requieres as a parameter the variable to be search
 
     def get_variable_type(self, var):
 
@@ -911,7 +911,7 @@ class Semantic():
 
     
     
-    # returns the type of the address of a variable in case it does not exists it will retuen error
+    # returns the type of the address of a variable in case it does not exists it will return error
     # as a parameter it requieres the address to serch in the ranges 
     def get_addr_type(self, addr):
 
@@ -952,7 +952,7 @@ class Semantic():
         raise TypeError
 
 
-    # simple function to pint the quadruples the variables and the functions tables in thath order and formated
+    # simple function to print the quadruples the variables and the functions tables in thath order and formated
     # it does not take any arguments and it is call when the compiling ends
     def print_quadruples(self):
 
@@ -980,9 +980,9 @@ class Semantic():
 
 
     # function to insert a ver quadruple which compare a value if it is in a range of the index and the base
-    # it takes as parameters the array name to get the the dims, as the second parameter it will take the value to evaluate 
-    # if is inside the range, and as the las paramterr is the dimension in which is currentyly working is it is true it means
-    # that is currenty working on the firtst dimension, in case it is false it means it is working on the second dimension
+    # it takes as parameters the array name to get the the dimensions, as the second parameter it will take the value to evaluate 
+    # if is inside the range, and the last parameter is the dimension in which is currently working, if it is true it means
+    # that is currenty working on the first dimension, in case it is false it means it is working on the second dimension
 
     def insert_ver_quadruple(self,arr_name,operand_1=None,dim1=True):
         
@@ -1044,9 +1044,9 @@ class Semantic():
         self.quadruples.append(quadruple)
     
 
-    # this function inserts a sum quadruple, but is not a common sum quadruple it takes as parameter the aray and the expresion
-    # this plus fuction is meant to be used in to add the base addr and the index expresion
-    # it does no return any value
+    # this function inserts a sum quadruple, but is not a common sum quadruple it takes as parameter the array and the expresion
+    # this plus fuction is meant to be used in to add the base address and the index expression
+    # it does not return any value
     def insert_plus_quadruple(self,arr,operand_1=None):
         
         if operand_1 == None:
@@ -1151,7 +1151,7 @@ class Semantic():
         self.quadruples.append(quadruple)
       
            
-    # Inserts a sum quadruple, meant to use to sum the previous indexed value to the the seccond dimension value 
+    # Inserts a sum quadruple, meant to use to sum the previous indexed value to the the second dimension value 
     # it takes as parameters the array to be indexed the expression of the second index of the matrix and the value of
     # the previos index, it does not have a return value
 
@@ -1204,7 +1204,7 @@ class Semantic():
         # 
      
                
-    # Determines if the variable is an array or matrix , it takes as parameter the tha array name
+    # Determines if the variable is an array or matrix , it takes as parameter the the array name
     # it returns a true in case the variable is an array or matrix, false in case it not
 
     def is_arr(self,arr_name):
@@ -1225,8 +1225,8 @@ class Semantic():
             return False
 
 
-    #  Determines if the variable is a matrix , it takes as parameter the tha variable name
-    # it returns a true in case the variable is a matrix, false in case it not
+    #  Determines if the variable is a matrix , it takes as parameter the variable name
+    # it returns a true if the variable is a matrix, false if its not
 
 
     def is_mat(self,mat_name):
@@ -1248,8 +1248,8 @@ class Semantic():
             return False
 
 
-    # function to determine if the arrays or matrixes have the same dimension , it takes as parameters the name of the two varibles to 
-    # evaluate, in case they are the same dimension it would return true in case they have differnt dimension it would return false
+    # function to determine if the arrays or matrixes have the same dimension , it takes as parameters the name of the two variables to 
+    # evaluate, in case they are the same dimension it would return true in case they have different dimension it would return false
     def same_dims(self,arr_1,arr_2):
 
         arr_1_addr = self.get_var_addr(arr_1)
@@ -1393,9 +1393,9 @@ class Semantic():
     
 
 
-    # This funcitno provides matrix and array operatinos quadruples menat to use in overloads operations
+    # This function provides matrix and array operations quadruples meant to use in overloads operations
     # it takes as parameters the operation which has a limitation of +,-,* and the two matrixs or arrays 
-    # the make the operation, and the last parameter takes in account if the operations are array as defaoult it is false
+    # to make the operation, and the last parameter takes in account if the operations are array as defaoult it is false
 
     def matrix_operation(self,operation, mat_1, mat_2, arr=False):
         
@@ -1482,9 +1482,9 @@ class Semantic():
        
 
 
-    # This fucntion will return the value or varible type in form of string 
+    # This function will return the value or variable type in form of string 
     # if it is a pointer it will return the pointer type, it takes the expression to be evaluated
-    # if the expressio is none it will get the last temporal value
+    # if the expression is none it will get the last temporal value
     def check_exp_type(self, operand_1):
         
         if operand_1 == None:
@@ -1517,8 +1517,8 @@ class Semantic():
 
 
 
-    # This fucntion returns the constant value of based on an address, if it does not exists it will 
-    # return None other wise it will return the value saved on the constats table
+    # This function returns the constant value of based on an address, if it does not exists it will 
+    # return None other wise it will return the value saved on the constant table
     # it takes as parameter the address to search 
     def get_const_value(self,addr):
 

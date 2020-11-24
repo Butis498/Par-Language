@@ -330,7 +330,7 @@ class VirtualMachine():
             elif temp2 == 'char':
                 temp = str(temp)
 
-            print(temp2,self.get_addr_type(operand_1))
+           # print(temp2,self.get_addr_type(operand_1))
             if temp2 != self.get_addr_type(operand_1):
                 raise TypeError('Not compatible input')
 

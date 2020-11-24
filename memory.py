@@ -38,9 +38,7 @@ class Memory():
             raise MemoryError(f'Not address found {addr}')
 
 
-        print(json.dumps(self.data_segment,sort_keys=True,
-                                                            indent=4,
-                                                            separators=(',', ': ')))
+       # print(json.dumps(self.data_segment,sort_keys=True,indent=4, separators=(',', ': ')))
 
 
 

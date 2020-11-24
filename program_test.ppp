@@ -1,13 +1,9 @@
 program Ejemplo;
 var int x;
 float z;
-int arr[3];
 main ()
 
 {
-x = 1;
-arr[0] = 1;
-
-z = 3.5;
-     write(x, z+2.4);
+read(x);
+write(x);
 }
