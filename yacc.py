@@ -2,6 +2,7 @@ from lexer import MyLexer
 import ply.yacc as yacc
 from semantic import Semantic
 
+
 class MyParser(object):
 
     tokens = MyLexer.tokens
@@ -9,13 +10,23 @@ class MyParser(object):
 
     def p_expression_program(self,p):
         '''
-        program : start_goto PROGRAM ID SEMICOLONS program2 program3 main
+        program : start_goto PROGRAM program_id SEMICOLONS program2 program3 main
         '''
         
         quadruple_end =  {'operation':'end','operand_1':None,'operand_2':None,'save_loc':None}
+        self.semantic.export_to_obj()
         self.semantic.quadruples.append(quadruple_end)
         self.semantic.print_quadruples()
-        
+
+    def p_expression_program_id(self,p):
+        '''
+        program_id : ID
+        '''
+        self.semantic.current_func = p[1]
+        self.semantic.program_id = p[1]
+        self.semantic.insert_func(p[1],'void',0)
+        self.program_id = p[1]
+       
     def p_expression_start_goto(self,p):
         '''
         start_goto : empty
@@ -28,6 +39,7 @@ class MyParser(object):
                  | empty
         '''
         self.current_scope = 'local'
+        self.semantic.update_func(self.semantic.current_func,0)
 
     def p_expression_program3(self,p):
         '''
@@ -38,6 +50,12 @@ class MyParser(object):
     def p_expression_vars(self,p):
         '''
         vars : VAR vars1
+        '''
+        self.semantic.last_temp.clear()
+        
+
+    def p_expression_vars3(self,p):
+        '''
         vars3 : COMA vars2
               | SEMICOLONS vars4
         vars4 : vars1
@@ -49,10 +67,10 @@ class MyParser(object):
         vars1 : type vars2
         '''
         for var in self.variables_stack:
-            dim_1 = self.dims_stack[-1]
-            self.dims_stack.pop(-1)
-            dim_2 = self.dims_stack[-1]
-            self.dims_stack.pop(-1)
+            dim_1 = self.dims_stack[0]
+            self.dims_stack.pop(0)
+            dim_2 = self.dims_stack[0]
+            self.dims_stack.pop(0)
             self.semantic.insert_variable(var,p[1],self.current_scope,dim1=dim_1,dim2=dim_2)
         self.variables_stack.clear()
 
@@ -60,7 +78,7 @@ class MyParser(object):
         '''
         vars2 : var vars3
         '''
-        self.variables_stack.append(p[1])
+        self.variables_stack.insert(0,p[1])
 
     def p_expression_functions(self,p):
         '''
@@ -70,24 +88,32 @@ class MyParser(object):
 
     def p_expression_end_func(self,p):
         '''
-        end_func : MODULE func_dec LPAREN functions2 RPAREN functions5 update_params block
+        end_func : MODULE clear_last func_dec LPAREN functions2 RPAREN functions5 update_params block
         '''
         
         self.semantic.update_func_memory(self.semantic.current_func)
         self.semantic.insert_func_quadruple(operation='endfunc')
+
+    def p_expression_clear_last(self,p):
+        '''
+        clear_last : empty
+        '''
+        
+        self.semantic.last_temp.clear()
 
 
     def p_asignation_update_params(self,p):
         '''
         update_params : empty
         '''
-        self.semantic.update_func(self.semantic.current_func)
+        self.semantic.update_func(self.semantic.current_func,self.semantic.param_dec_count)
+        self.semantic.param_dec_count = 0
 
     def p_asignation_func_dec(self,p):
         '''
         func_dec : functions1 func_name
         '''
-        self.semantic.insert_func(p[2],p[1])
+        self.semantic.insert_func(p[2],p[1],len(self.semantic.quadruples))
 
     def p_expression_functions1(self,p):
         '''
@@ -123,6 +149,7 @@ class MyParser(object):
         '''
         if p[1] != None:
             self.semantic.insert_variable(p[2],p[1],'local',True)
+            self.semantic.param_dec_count += 1
 
     
         
@@ -132,6 +159,7 @@ class MyParser(object):
         '''
         self.semantic.reset_memory('temp')
         self.semantic.reset_memory('local')
+        self.semantic.last_temp.clear()
 
 
     def p_term_type(self,p):
@@ -178,6 +206,9 @@ class MyParser(object):
         '''
         condition2 : LPAREN expression RPAREN
         '''
+
+        if self.semantic.check_exp_type(p[2]) != 'bool':
+            raise TypeError('not bool type in condition')
         self.semantic.insert_quadruple_goto(None,p[2],False)
         self.semantic.jumps_stack.append(len(self.semantic.quadruples)-1)
 
@@ -204,6 +235,9 @@ class MyParser(object):
         '''
         writing : WRITE LPAREN  writing1 RPAREN SEMICOLONS
         '''
+        quadruple = {'operation':'end_write','operand_1':None,'operand_2':None,'save_loc':None}
+        self.semantic.quadruples.append(quadruple)
+
 
         
 
@@ -269,7 +303,8 @@ class MyParser(object):
         '''
         
         if p[2] == None:
-            last_temp = list(self.semantic.last_temp.keys())[0][0]
+            last_temp = list(self.semantic.last_temp[-1].keys())[0][0]
+            self.semantic.last_temp.pop(-1)
         else:
             last_temp = p[2]
 
@@ -289,7 +324,8 @@ class MyParser(object):
         
        
         if p[3] == None:
-            last_temp = list(self.semantic.last_temp.keys())[0][0]
+            last_temp = list(self.semantic.last_temp[-1].keys())[0][0]
+            self.semantic.last_temp.pop(-1)
         else:
             last_temp = p[3]
         
@@ -325,9 +361,10 @@ class MyParser(object):
         '''
         return : RETURN  LPAREN expression detect_asignation RPAREN SEMICOLONS
         '''
-        self.semantic.insert_quadruple_action(p[1],p[3])
+        self.semantic.insert_quadruple_action(p[1],p[3],return_id = self.semantic.current_func)
         try:
-            self.semantic.insert_quadruple_asignation(self.semantic.current_func,p[3])
+            
+            self.semantic.insert_quadruple_asignation(self.semantic.current_func,p[3],True)
         except KeyError:
 
             raise KeyError('No return for function given')
@@ -351,10 +388,10 @@ class MyParser(object):
              | empty
         '''
         if p[1] != None:
-            self.dims_stack.append(p[2])
+            self.dims_stack.insert(0,p[2])
         else:
-            self.dims_stack.append(None)
-            self.dims_stack.append(None)
+            self.dims_stack.insert(0,None)
+            self.dims_stack.insert(0,None)
             p[0] = None
 
     def p_expression_var2(self,p):
@@ -363,9 +400,9 @@ class MyParser(object):
              | empty
         '''
         if p[1] != None:
-            self.dims_stack.append(p[2])
+            self.dims_stack.insert(0,p[2])
         else:
-            self.dims_stack.append(None)
+            self.dims_stack.insert(0,None)
             p[0] = None
 
     def p_expression_call(self,p):
@@ -384,10 +421,12 @@ class MyParser(object):
         end_params : empty
         '''
         self.semantic.insert_gosub_quadruple(self.semantic.func_call_stack[-1])
-        try:
+
+        func_type = self.semantic.functions_table[self.semantic.func_call_stack[-1]]['type']
+
+        if func_type != 'void':
             self.semantic.insert_quadruple_asignation(None,self.semantic.func_call_stack[-1])
-        except KeyError:
-            pass
+        
         
     def p_expression_call1(self,p):
         '''
@@ -430,22 +469,20 @@ class MyParser(object):
     
     def p_expression_main(self,p):
         '''
-        main : MAIN insert_jump LPAREN RPAREN main2 block
+        main : MAIN insert_jump LPAREN RPAREN  block
         '''
+        self.semantic.update_func_memory(self.program_id)
         self.semantic.reset_memory('temp')
         self.semantic.reset_memory('local')
+        self.semantic.reset_memory('global')
 
     def p_expression_insert_jump(self,p):
         '''
         insert_jump : empty
         '''
         self.semantic.quadruples[self.semantic.jumps_stack[-1]]['save_loc'] = len(self.semantic.quadruples)
+        self.semantic.current_func = 'main'
 
-    def p_expression_main2(self,p):
-        '''
-        main2 : vars
-              | empty
-        '''
 
     def p_expression_param(self,p):
         '''
@@ -457,19 +494,23 @@ class MyParser(object):
                 raise KeyError("Wrong usage of modifier in a not matrix variable")
 
             if p[2] != None:
-                arr_to_mod = self.current_arr[-1]
+                arr_to_mod = self.semantic.current_arr[-1]
                 mod = p[2]
                 self.semantic.apply_modifier(arr_to_mod,mod)
-                p[0] = list(self.semantic.last_temp.keys())[0][0]
+                p[0] = list(self.semantic.last_temp[-1].keys())[0][0]
+                self.semantic.last_temp.pop(-1)
+                
+                
             else:
                 p[0] = p[1]
         else:
             if p[2] != None:
                 raise KeyError("Wrong usage of modifier")
-            p[0] = list(self.semantic.last_temp.keys())[0][0]
+            p[0] = list(self.semantic.last_temp[-1].keys())[0][0]
+            self.semantic.last_temp.pop(-1)
 
         
-        self.current_arr.pop(-1)
+        self.semantic.current_arr.pop(-1)
 
     def p_expression_param_mod(self,p):
         '''
@@ -484,7 +525,7 @@ class MyParser(object):
         param_id : ID
         '''
         p[0] = p[1]
-        self.current_arr.append(p[1])
+        self.semantic.current_arr.append(p[1])
 
     def p_expression_param1(self,p):
         '''
@@ -493,7 +534,7 @@ class MyParser(object):
         '''
         if p[1] != None:
             if p[4] == None:
-                self.semantic.insert_plus_quadruple(self.current_arr[-1],p[2])
+                self.semantic.insert_plus_quadruple(self.semantic.current_arr[-1],p[2])
 
         p[0] = p[1]
 
@@ -503,10 +544,14 @@ class MyParser(object):
                | empty
         '''
         if p[1] != None:
-            s1_times_m1 = self.dims_stack[-1]
-            self.dims_stack.pop(-1)
-            self.semantic.insert_plus_quadruple_dim2(self.current_arr[-1],p[3],s1_times_m1)
-            self.semantic.insert_plus_quadruple(self.current_arr[-1])
+            last = list(self.semantic.last_temp[-1].keys())[0][0]
+            self.semantic.last_temp.pop(-1)
+            s1_times_m1 = list(self.semantic.last_temp[-1].keys())[0][0]
+            self.semantic.last_temp.pop(-1)
+            
+            
+            self.semantic.insert_plus_quadruple_dim2(self.semantic.current_arr[-1],last,s1_times_m1)
+            self.semantic.insert_plus_quadruple(self.semantic.current_arr[-1])
             p[0] = p[1]
             
 
@@ -514,17 +559,21 @@ class MyParser(object):
         '''
         two_detect : empty
         '''
-        
-        self.semantic.insert_times_quadruple(self.current_arr[-1],p[1])
-        self.dims_stack.append('temp'+str(self.semantic.temp_count-1))
+        #print(self.semantic.last_temp)
+        self.semantic.insert_times_quadruple(self.semantic.current_arr[-1],p[1])
+        self.dims_stack.insert(0,'temp'+str(self.semantic.temp_count-1))
 
 
     def p_expression_ver_dim1(self,p):
         '''
         ver_dim1 : expression 
         '''
-        curr_arr_name = self.current_arr[-1]
+        curr_arr_name = self.semantic.current_arr[-1]
         self.semantic.insert_ver_quadruple(curr_arr_name,p[1])
+
+        if self.semantic.check_exp_type(p[1]) != 'int':
+            raise TypeError('Not int index')
+        
         p[0] = p[1]
             
 
@@ -532,8 +581,12 @@ class MyParser(object):
         '''
         ver_dim2 : expression 
         '''
-        curr_arr_name = self.current_arr[-1]
+        curr_arr_name = self.semantic.current_arr[-1]
         self.semantic.insert_ver_quadruple(curr_arr_name,p[1],False)
+
+        if self.semantic.check_exp_type(p[1]) != 'int':
+            raise TypeError('Not int index')
+
         p[0] = p[1]
       
 
@@ -545,6 +598,7 @@ class MyParser(object):
         if p[2] == None:
             p[0] = p[1]
             
+
         else:
             self.semantic.insert_quadruple_operation(p[2],p[1],p[3])
         
@@ -660,16 +714,18 @@ class MyParser(object):
 
     # Error rule for syntax errors
     def p_error(self,p):
-        raise SystemError("Syntax error in input!")
+        self.lexer
+        raise SystemError(f"Syntax error in line {self.lex.line_cont+2}")
 
     def __init__(self):
-        self.lexer = MyLexer().build()
+        self.lex = MyLexer()
+        self.lexer = self.lex.build()
         self.parser = yacc.yacc(module=self)
         self.semantic = Semantic()
         self.current_type =''
         self.current_scope = 'global'
         self.variables_stack  = []
         self.dims_stack = []
-        self.current_arr = []
+        self.program_id = ''
 
 

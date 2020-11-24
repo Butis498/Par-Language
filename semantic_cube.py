@@ -5,12 +5,11 @@ semantic_cube = {
             'float': 'float'
         },
         '-': {
-            'int': 'int',
+            'int': 'int', 
             'float': 'float'
         },
         '=': {
-            'int': 'int',
-            'float': 'int'
+            'int': 'int'
         },
         '*': {
             'int': 'int',
@@ -45,6 +44,7 @@ semantic_cube = {
             'int': 'bool',
             'float': 'bool'
         }
+        
     },
 
     'float': {
@@ -98,6 +98,7 @@ semantic_cube = {
     'bool': {
         '=': {
             'bool': 'bool'
+            
         },
         '==': {
             'bool': 'bool'
@@ -124,21 +125,13 @@ semantic_cube = {
             'char': 'bool'
         }
     },
-
     'pointer':{
-        '=':{
-            'pointer':'pointer'
-        },
         '+':{
-            'int':'pointer',
-            'pointer':'pointer'
+            'int':'pointer'
         },
         '-':{
-            'int':'pointer',
-        },
-        '*':{
-            'int':'pointer',
             'pointer':'pointer'
         }
     }
+    
 }

@@ -5,6 +5,7 @@ class MyLexer(object):
 
 
     def __init__(self):
+        self.line_cont = 0
         self.reserved = {
             'write' : 'WRITE',
             'if':'IF',
@@ -27,11 +28,11 @@ class MyLexer(object):
             'return' : 'RETURN',
             'then' : 'THEN',
             'True' : 'TRUE',
-            'False' : 'FASLE'
+            'False' : 'FALSE'
             }
 
     tokens = (
-        'INUM','FNUM','PLUS','MINUS','TIMES','DIVIDE','LPAREN','RPAREN','ID','SEMICOLONS','COMA',
+        'FNUM','INUM','PLUS','MINUS','TIMES','DIVIDE','LPAREN','RPAREN','ID','SEMICOLONS','COMA',
         'RBRACKET','LBRACKET','GREATERTHAN','MINORTHAN','IF','ELSE', 'EQUAL','INT','FLOAT',
         'VAR','PROGRAM','STRING','CHAR','RCURLYBRACKET','LCURLYBRACKET','MAIN', 'WRITE','MODULE','READ',
         'DO' , 'WHILE', 'FOR','TO','RETURN', 'VOID','AND','OR', 'EQUALS','THEN','CCHAR','BOOL','TRUE','FALSE','TRANSPOSE',
@@ -63,29 +64,34 @@ class MyLexer(object):
     t_DETERMINANT = r'\$'
     t_INVERSE = r'\?'
     t_CCHAR = r"'([A-Za-z]|[0-9])'"
-    t_STRING= r'"([A-Za-z]|[0-9])*"'
+    t_STRING= r'"([A-Za-z]|[0-9]|\ |\?|\+|\-|\*|\_|\-|\:|\,)*"'
 
     
     # A regular expression rule with some action code
-    def t_INUM(self, t):
-        r'[0-9]+'
-        t.value = int(t.value)    
-        return t
-
+    
+    # float number regular expression
     def t_FNUM(self, t):
-        r'[0-9]+(\.[0-9]+)?'
-        t.value = int(t.value)    
+        r'[0-9]+(\.([0-9]+)?([eE][-+]?[0-9]+)?|[eE][-+]?[0-9]+)'
+        t.value = float(t.value)
         return t
 
+    # variables regualar expression
     def t_ID(self, t):
         r'[A-Za-z]([A-Za-z]|[0-9])*'
         if t.value in self.reserved:
             t.type = self.reserved[ t.value ]
         return t
+
+    # int numbers regualar expression
+    def t_INUM(self, t):
+        r'\d+'
+        t.value = int(t.value)    
+        return t
     
     # Define a rule so we can track line numbers
     def t_newline(self, t):
         r'\n+'
+        self.line_cont += 1
         t.lexer.lineno += len(t.value)
     
     # A string containing ignored characters (spaces and tabs)
@@ -94,7 +100,7 @@ class MyLexer(object):
     # Error handling rule
     def t_error(self, t):
         raise KeyError("Illegal character '%s'" % t.value[0])
-        #t.lexer.skip(1)
+        t.lexer.skip(1)
 
        # Build the lexer
     

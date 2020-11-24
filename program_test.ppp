@@ -1,0 +1,9 @@
+program Ejemplo;
+var int x;
+float z;
+main ()
+
+{
+read(x);
+write(x);
+}
